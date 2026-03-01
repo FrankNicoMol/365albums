@@ -6,6 +6,10 @@ spotify_albums/spotify_credentials.sh
 csv/
 index.html
 
+# IDE / editor
+.idea/
+.cache/
+
 # Python
 .venv/
 __pycache__/
