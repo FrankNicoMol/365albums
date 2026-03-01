@@ -12,14 +12,29 @@ def _top_genres(df, n=5):
     return [genre.title() for genre, _ in counts.most_common(n)]
 
 
+def _table_rows(df):
+    rows = []
+    for _, row in df.iterrows():
+        rows.append(
+            f'<tr>'
+            f'<td>{row["artist"]}</td>'
+            f'<td>{row["album"]}</td>'
+            f'<td>{row["year"]}</td>'
+            f'<td>{row["duration_min"]}</td>'
+            f'<td>{row["genres"]}</td>'
+            f'</tr>'
+        )
+    return '\n'.join(rows)
+
+
 def build_page(df, img_path: Path, output_path: Path):
     albums = len(df)
     total_min = int(df['duration_min'].sum())
     remaining = max(0, 365 - albums)
     progress_pct = round(albums / 365 * 100, 1)
     genres = _top_genres(df)
-
     img_rel = img_path.relative_to(output_path.parent)
+    rows = _table_rows(df)
 
     html = f"""<!DOCTYPE html>
 <html lang="en">
@@ -37,97 +52,100 @@ def build_page(df, img_path: Path, output_path: Path):
       font-weight: 300;
     }}
 
+    /* ── Hero ── */
     .hero {{
-      width: 100%;
-      max-height: 75vh;
-      object-fit: cover;
-      display: block;
+      position: relative;
+      min-height: 100vh;
+      background: url('{img_rel}') center center / cover no-repeat;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }}
 
-    .content {{
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 4rem 2rem 6rem;
+    .hero::before {{
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(8,8,15,0.35) 0%, rgba(8,8,15,0.65) 100%);
+    }}
+
+    .hero-content {{
+      position: relative;
+      max-width: 560px;
+      width: 100%;
+      padding: 3rem 2rem;
+      text-align: left;
     }}
 
     .eyebrow {{
       font-size: 0.7rem;
       letter-spacing: 0.25em;
       text-transform: uppercase;
-      color: #6b6b88;
-      margin-bottom: 1rem;
+      color: rgba(220,220,255,0.5);
+      margin-bottom: 0.75rem;
     }}
 
     .mission {{
-      font-size: 2.4rem;
+      font-size: 2.8rem;
       font-weight: 200;
-      line-height: 1.25;
-      margin-bottom: 3.5rem;
+      line-height: 1.2;
+      margin-bottom: 3rem;
       color: #f0f0ff;
-    }}
-
-    .divider {{
-      border: none;
-      border-top: 1px solid #1a1a2e;
-      margin: 2.5rem 0;
+      text-shadow: 0 2px 24px rgba(0,0,0,0.6);
     }}
 
     .stats {{
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 1.5rem;
+      margin-bottom: 2.5rem;
     }}
 
     .stat-value {{
-      font-size: 2.6rem;
+      font-size: 2.4rem;
       font-weight: 200;
-      color: #b47fe8;
+      color: #c084fc;
       line-height: 1;
+      text-shadow: 0 0 32px rgba(192,132,252,0.4);
     }}
 
     .stat-label {{
-      font-size: 0.65rem;
+      font-size: 0.62rem;
       letter-spacing: 0.2em;
       text-transform: uppercase;
-      color: #55556a;
+      color: rgba(200,200,230,0.45);
       margin-top: 0.4rem;
-    }}
-
-    .section-label {{
-      font-size: 0.65rem;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: #55556a;
-      margin-bottom: 1rem;
     }}
 
     .tags {{
       display: flex;
       flex-wrap: wrap;
-      gap: 0.5rem;
+      gap: 0.4rem;
+      margin-bottom: 2.5rem;
     }}
 
     .tag {{
-      padding: 0.3rem 0.8rem;
-      border: 1px solid #2a1a4a;
-      font-size: 0.8rem;
-      color: #9d6ed6;
-      letter-spacing: 0.05em;
+      padding: 0.25rem 0.7rem;
+      border: 1px solid rgba(160,100,230,0.3);
+      font-size: 0.75rem;
+      color: #a78bfa;
+      backdrop-filter: blur(4px);
+      background: rgba(8,8,15,0.3);
     }}
 
     .progress-row {{
       display: flex;
       justify-content: space-between;
-      font-size: 0.65rem;
+      font-size: 0.62rem;
       letter-spacing: 0.2em;
       text-transform: uppercase;
-      color: #55556a;
-      margin-bottom: 0.75rem;
+      color: rgba(200,200,230,0.45);
+      margin-bottom: 0.6rem;
     }}
 
     .bar-track {{
       height: 1px;
-      background: #1a1a2e;
+      background: rgba(255,255,255,0.1);
     }}
 
     .bar-fill {{
@@ -135,50 +153,161 @@ def build_page(df, img_path: Path, output_path: Path):
       background: linear-gradient(90deg, #7c3aed, #d4622a);
       width: {progress_pct}%;
     }}
+
+    /* ── Table section ── */
+    .table-section {{
+      padding: 5rem 2rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }}
+
+    .section-label {{
+      font-size: 0.65rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: #55556a;
+      margin-bottom: 1.5rem;
+    }}
+
+    table {{
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }}
+
+    thead th {{
+      text-align: left;
+      font-size: 0.62rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #55556a;
+      padding: 0.5rem 1rem 0.5rem 0;
+      border-bottom: 1px solid #1a1a2e;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }}
+
+    thead th:hover {{ color: #a78bfa; }}
+
+    thead th::after {{
+      content: ' ↕';
+      opacity: 0.3;
+    }}
+
+    thead th.asc::after  {{ content: ' ↑'; opacity: 1; color: #a78bfa; }}
+    thead th.desc::after {{ content: ' ↓'; opacity: 1; color: #a78bfa; }}
+
+    tbody tr {{
+      border-bottom: 1px solid #0f0f1a;
+      transition: background 0.1s;
+    }}
+
+    tbody tr:hover {{ background: #0f0f1e; }}
+
+    tbody td {{
+      padding: 0.6rem 1rem 0.6rem 0;
+      color: #c0c0d8;
+      vertical-align: top;
+    }}
+
+    tbody td:nth-child(3),
+    tbody td:nth-child(4) {{ color: #55556a; }}
   </style>
 </head>
 <body>
 
-  <img class="hero" src="{img_rel}" alt="365 Albums 2026">
+  <section class="hero">
+    <div class="hero-content">
 
-  <div class="content">
+      <p class="eyebrow">New Year's Resolution — 2026</p>
+      <p class="mission">Listen to<br>365 albums.</p>
 
-    <p class="eyebrow">New Year's Resolution — 2026</p>
-    <p class="mission">Listen to<br>365 albums.</p>
-
-    <div class="stats">
-      <div>
-        <div class="stat-value">{albums}</div>
-        <div class="stat-label">Albums listened</div>
+      <div class="stats">
+        <div>
+          <div class="stat-value">{albums}</div>
+          <div class="stat-label">Listened</div>
+        </div>
+        <div>
+          <div class="stat-value">{total_min:,}</div>
+          <div class="stat-label">Minutes</div>
+        </div>
+        <div>
+          <div class="stat-value">{remaining}</div>
+          <div class="stat-label">To go</div>
+        </div>
       </div>
-      <div>
-        <div class="stat-value">{total_min:,}</div>
-        <div class="stat-label">Minutes</div>
+
+      <div class="tags">
+        {"".join(f'<span class="tag">{g}</span>' for g in genres)}
       </div>
-      <div>
-        <div class="stat-value">{remaining}</div>
-        <div class="stat-label">To go</div>
+
+      <div class="progress-row">
+        <span>Progress</span>
+        <span>{albums} / 365</span>
       </div>
+      <div class="bar-track">
+        <div class="bar-fill"></div>
+      </div>
+
     </div>
+  </section>
 
-    <hr class="divider">
+  <section class="table-section">
+    <p class="section-label">All albums</p>
+    <table id="albums-table">
+      <thead>
+        <tr>
+          <th onclick="sortTable(0)">Artist</th>
+          <th onclick="sortTable(1)">Album</th>
+          <th onclick="sortTable(2)">Year</th>
+          <th onclick="sortTable(3)">Duration (min)</th>
+          <th onclick="sortTable(4)">Genres</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows}
+      </tbody>
+    </table>
+  </section>
 
-    <p class="section-label">Top genres</p>
-    <div class="tags">
-      {"".join(f'<span class="tag">{g}</span>' for g in genres)}
-    </div>
+  <script>
+    let sortCol = -1;
+    let sortAsc = true;
 
-    <hr class="divider">
+    function sortTable(col) {{
+      const table = document.getElementById('albums-table');
+      const tbody = table.querySelector('tbody');
+      const headers = table.querySelectorAll('thead th');
+      const rows = Array.from(tbody.querySelectorAll('tr'));
 
-    <div class="progress-row">
-      <span>Progress</span>
-      <span>{albums} / 365</span>
-    </div>
-    <div class="bar-track">
-      <div class="bar-fill"></div>
-    </div>
+      if (sortCol === col) {{
+        sortAsc = !sortAsc;
+      }} else {{
+        sortCol = col;
+        sortAsc = true;
+      }}
 
-  </div>
+      headers.forEach((th, i) => {{
+        th.classList.remove('asc', 'desc');
+        if (i === col) th.classList.add(sortAsc ? 'asc' : 'desc');
+      }});
+
+      rows.sort((a, b) => {{
+        const aText = a.cells[col].textContent.trim();
+        const bText = b.cells[col].textContent.trim();
+        const aNum = parseFloat(aText);
+        const bNum = parseFloat(bText);
+        const cmp = (!isNaN(aNum) && !isNaN(bNum))
+          ? aNum - bNum
+          : aText.localeCompare(bText);
+        return sortAsc ? cmp : -cmp;
+      }});
+
+      rows.forEach(r => tbody.appendChild(r));
+    }}
+  </script>
+
 </body>
 </html>"""
 
