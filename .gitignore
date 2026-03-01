@@ -5,6 +5,7 @@ spotify_albums/spotify_credentials.sh
 # IDE / editor
 .idea/
 .cache/
+.cache
 
 # Python
 .venv/
