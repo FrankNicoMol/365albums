@@ -209,7 +209,7 @@ def build_page(df, img_path: Path, output_path: Path, formspree_url: str = '', f
 
     /* ── Content section ── */
     .content-section {{
-      padding: 5rem 2rem;
+      padding: 2rem 2rem 5rem;
       max-width: 900px;
       margin: 0 auto;
     }}
@@ -304,6 +304,10 @@ def build_page(df, img_path: Path, output_path: Path, formspree_url: str = '', f
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
       gap: 4px;
+    }}
+
+    @media (max-width: 480px) {{
+      .mosaic-grid {{ grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); }}
     }}
 
     .mosaic-item {{
@@ -496,12 +500,18 @@ def build_page(df, img_path: Path, output_path: Path, formspree_url: str = '', f
   <section class="content-section">
 
     <nav class="tab-nav">
-      <button class="tab-btn active" data-tab="list" onclick="showTab('list')">List</button>
-      <button class="tab-btn" data-tab="mosaic" onclick="showTab('mosaic')">Mosaic</button>
+      <button class="tab-btn active" data-tab="mosaic" onclick="showTab('mosaic')">Mosaic</button>
+      <button class="tab-btn" data-tab="list" onclick="showTab('list')">List</button>
       <button class="tab-btn" data-tab="visualizations" onclick="showTab('visualizations')">Visualizations</button>
     </nav>
 
-    <div id="panel-list" class="tab-panel active">
+    <div id="panel-mosaic" class="tab-panel active">
+      <div class="mosaic-grid">
+        {mosaic}
+      </div>
+    </div>
+
+    <div id="panel-list" class="tab-panel">
       <div class="table-scroll">
       <table id="albums-table">
         <thead>
@@ -517,12 +527,6 @@ def build_page(df, img_path: Path, output_path: Path, formspree_url: str = '', f
           {rows}
         </tbody>
       </table>
-      </div>
-    </div>
-
-    <div id="panel-mosaic" class="tab-panel">
-      <div class="mosaic-grid">
-        {mosaic}
       </div>
     </div>
 
