@@ -89,6 +89,13 @@
       color: #a78bfa;
       backdrop-filter: blur(4px);
       background: rgba(8,8,15,0.3);
+      text-decoration: none;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .tag:hover {
+      border-color: rgba(160,100,230,0.7);
+      background: rgba(124,58,237,0.2);
     }
 
     .progress-row {
@@ -207,8 +214,12 @@
     /* ── Mosaic ── */
     .mosaic-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
       gap: 4px;
+    }
+
+    @media (max-width: 480px) {
+      .mosaic-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); }
     }
 
     .mosaic-item {
@@ -381,7 +392,7 @@
       </div>
 
       <div class="tags">
-        <span class="tag">Stoner Rock</span><span class="tag">Neo-Psychedelic</span><span class="tag">Blues Rock</span><span class="tag">Nederpop</span><span class="tag">Synthwave</span><span class="tag">Indie</span><span class="tag">Post-Punk</span><span class="tag">Soft Rock</span><span class="tag">Stutter House</span><span class="tag">Experimental Jazz</span>
+        <a class="tag" href="https://open.spotify.com/search/Stoner%20Rock" target="_blank" rel="noopener">Stoner Rock</a><a class="tag" href="https://open.spotify.com/search/Neo-Psychedelic" target="_blank" rel="noopener">Neo-Psychedelic</a><a class="tag" href="https://open.spotify.com/search/Blues%20Rock" target="_blank" rel="noopener">Blues Rock</a><a class="tag" href="https://open.spotify.com/search/Nederpop" target="_blank" rel="noopener">Nederpop</a><a class="tag" href="https://open.spotify.com/search/Synthwave" target="_blank" rel="noopener">Synthwave</a><a class="tag" href="https://open.spotify.com/search/Indie" target="_blank" rel="noopener">Indie</a><a class="tag" href="https://open.spotify.com/search/Post-Punk" target="_blank" rel="noopener">Post-Punk</a><a class="tag" href="https://open.spotify.com/search/Soft%20Rock" target="_blank" rel="noopener">Soft Rock</a><a class="tag" href="https://open.spotify.com/search/Stutter%20House" target="_blank" rel="noopener">Stutter House</a><a class="tag" href="https://open.spotify.com/search/Experimental%20Jazz" target="_blank" rel="noopener">Experimental Jazz</a>
       </div>
 
       <div class="progress-row">
@@ -682,6 +693,15 @@
           maintainAspectRatio: true,
           aspectRatio: 1.2,
           plugins: { legend: { display: false } },
+          onClick: (evt, elements) => {
+            if (elements.length > 0) {
+              const genre = top[elements[0].index][0];
+              window.open('https://open.spotify.com/search/' + encodeURIComponent(genre), '_blank', 'noopener');
+            }
+          },
+          onHover: (evt, elements) => {
+            evt.native.target.style.cursor = elements.length > 0 ? 'pointer' : 'default';
+          },
           scales: {
             x: { display: false },
             y: {

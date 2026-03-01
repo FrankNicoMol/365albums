@@ -1,6 +1,7 @@
 import json
 from collections import defaultdict
 from pathlib import Path
+from urllib.parse import quote
 
 
 def _esc(s):
@@ -183,6 +184,13 @@ def build_page(df, img_path: Path, output_path: Path, formspree_url: str = '', f
       color: #a78bfa;
       backdrop-filter: blur(4px);
       background: rgba(8,8,15,0.3);
+      text-decoration: none;
+      transition: border-color 0.15s, background 0.15s;
+    }}
+
+    .tag:hover {{
+      border-color: rgba(160,100,230,0.7);
+      background: rgba(124,58,237,0.2);
     }}
 
     .progress-row {{
@@ -301,8 +309,12 @@ def build_page(df, img_path: Path, output_path: Path, formspree_url: str = '', f
     /* ── Mosaic ── */
     .mosaic-grid {{
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
       gap: 4px;
+    }}
+
+    @media (max-width: 480px) {{
+      .mosaic-grid {{ grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); }}
     }}
 
     .mosaic-item {{
@@ -475,7 +487,7 @@ def build_page(df, img_path: Path, output_path: Path, formspree_url: str = '', f
       </div>
 
       <div class="tags">
-        {"".join(f'<span class="tag">{g}</span>' for g in genres)}
+        {"".join(f'<a class="tag" href="https://open.spotify.com/search/{quote(g, safe="")}" target="_blank" rel="noopener">{g}</a>' for g in genres)}
       </div>
 
       <div class="progress-row">
@@ -694,6 +706,15 @@ def build_page(df, img_path: Path, output_path: Path, formspree_url: str = '', f
           maintainAspectRatio: true,
           aspectRatio: 1.2,
           plugins: {{ legend: {{ display: false }} }},
+          onClick: (evt, elements) => {{
+            if (elements.length > 0) {{
+              const genre = top[elements[0].index][0];
+              window.open('https://open.spotify.com/search/' + encodeURIComponent(genre), '_blank', 'noopener');
+            }}
+          }},
+          onHover: (evt, elements) => {{
+            evt.native.target.style.cursor = elements.length > 0 ? 'pointer' : 'default';
+          }},
           scales: {{
             x: {{ display: false }},
             y: {{
