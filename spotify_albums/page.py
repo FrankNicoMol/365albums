@@ -37,7 +37,7 @@ def _table_rows(df):
             f'<td>{row["artist"]}</td>'
             f'<td>{row["album"]}</td>'
             f'<td>{row["year"]}</td>'
-            f'<td>{row["duration_min"]}</td>'
+            f'<td>{round(row["duration_min"] / 60, 1)}</td>'
             f'<td>{row["genres"]}</td>'
             f'</tr>'
         )
@@ -46,7 +46,7 @@ def _table_rows(df):
 
 def build_page(df, img_path: Path, output_path: Path, formspree_url: str = '', footer_name: str = '', footer_url: str = ''):
     albums = len(df)
-    total_min = int(df['duration_min'].sum())
+    total_hours = round(df['duration_min'].sum() / 60, 1)
     remaining = max(0, 365 - albums)
     progress_pct = round(albums / 365 * 100, 1)
     genres = _top_genres(df)
@@ -330,8 +330,8 @@ def build_page(df, img_path: Path, output_path: Path, formspree_url: str = '', f
           <div class="stat-label">Listened</div>
         </div>
         <div>
-          <div class="stat-value">{total_min:,}</div>
-          <div class="stat-label">Minutes</div>
+          <div class="stat-value">{total_hours}</div>
+          <div class="stat-label">Hours</div>
         </div>
         <div>
           <div class="stat-value">{remaining}</div>
@@ -351,9 +351,7 @@ def build_page(df, img_path: Path, output_path: Path, formspree_url: str = '', f
         <div class="bar-fill"></div>
       </div>
 
-      <hr class="hero-divider">
-
-      <p class="section-label">Suggest an album</p>
+      <p class="section-label" style="margin-top:2rem;">Suggest an album</p>
       <form class="suggest-form" id="suggest-form">
         <input type="text" name="name" placeholder="Your name" required>
         <input type="text" name="album" placeholder="Album name or Spotify link" required>
@@ -374,7 +372,7 @@ def build_page(df, img_path: Path, output_path: Path, formspree_url: str = '', f
           <th class="sortable" onclick="sortTable(1)">Artist</th>
           <th class="sortable" onclick="sortTable(2)">Album</th>
           <th class="sortable" onclick="sortTable(3)">Year</th>
-          <th class="sortable" onclick="sortTable(4)">Duration (min)</th>
+          <th class="sortable" onclick="sortTable(4)">Duration (hrs)</th>
           <th class="sortable" onclick="sortTable(5)">Genres</th>
         </tr>
       </thead>
