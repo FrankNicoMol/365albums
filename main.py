@@ -1,7 +1,7 @@
 from datetime import date
 from pathlib import Path
 
-from spotify_albums import load_config, load_credentials, load_urls, write_to_markdown, load_markdown_albums, get_albums, build_dataframe, build_page
+from spotify_albums import load_config, load_credentials, load_urls, write_to_markdown, write_to_markdown_checkbox, load_markdown_albums, load_checkbox_albums, get_albums, build_dataframe, build_page
 
 ROOT = Path(__file__).parent
 load_credentials(ROOT / 'spotify_albums' / 'spotify_credentials.sh')
@@ -13,7 +13,7 @@ def get_new_albums():
     urls_list = load_urls(paths["links"])
     albums = get_albums(urls_list)
     albums_listened = load_markdown_albums(paths["listened"])
-    albums_not_listened = load_markdown_albums(paths["not_listened"])
+    _, albums_not_listened = load_checkbox_albums(paths["not_listened"])
     albums_not_listened = [album for album in albums_not_listened if album not in albums_listened]
     new_albums = [album for album in albums if album not in albums_listened]
     new_albums = [album for album in new_albums if album not in albums_not_listened]
@@ -21,11 +21,13 @@ def get_new_albums():
 
 
 if __name__ == '__main__':
-    albums = get_new_albums()
-    write_to_markdown(albums, paths["not_listened"])
-
-    listened = sorted(load_markdown_albums(paths["listened"]))
+    # Promote checked albums from not_listened to listened
+    checked, _ = load_checkbox_albums(paths["not_listened"])
+    listened = sorted(load_markdown_albums(paths["listened"]) + checked)
     write_to_markdown(listened, paths["listened"])
+
+    albums = get_new_albums()
+    write_to_markdown_checkbox(albums, paths["not_listened"])
 
     with open(paths["links"], 'w') as f:
         f.write('')

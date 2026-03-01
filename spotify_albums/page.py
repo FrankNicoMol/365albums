@@ -86,7 +86,7 @@ def build_page(df, img_path: Path, output_path: Path, formspree_url: str = '', f
     total_hours = round(df['duration_min'].sum() / 60, 1)
     remaining = max(0, 365 - albums)
     progress_pct = round(albums / 365 * 100, 1)
-    genres = _top_genres(df)
+    genres = _top_genres(df, n=10)
     img_rel = img_path.relative_to(output_path.parent)
     rows = _table_rows(df)
     mosaic = _mosaic_items(df)
