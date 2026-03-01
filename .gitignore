@@ -2,10 +2,6 @@
 config/paths.yaml
 spotify_albums/spotify_credentials.sh
 
-# Generated outputs
-csv/
-index.html
-
 # IDE / editor
 .idea/
 .cache/
