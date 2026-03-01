@@ -1,0 +1,6 @@
+# Copy this file to paths.yaml and fill in your own paths.
+# These should point to markdown files in your note-taking app (e.g. Obsidian).
+
+links:        /path/to/your/links.md         # paste Spotify album URLs here
+listened:     /path/to/your/listened.md      # albums you have listened to
+not_listened: /path/to/your/not_listened.md  # albums queued up to listen

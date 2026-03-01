@@ -1,0 +1,16 @@
+# Personal config — copy from *.example and fill in your own values
+config/paths.yaml
+spotify_albums/spotify_credentials.sh
+
+# Generated outputs
+csv/
+index.html
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
