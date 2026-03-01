@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>365 Albums 2026</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -109,16 +110,45 @@
     .bar-fill {
       height: 1px;
       background: linear-gradient(90deg, #7c3aed, #d4622a);
-      width: 11.2%;
+      width: 11.5%;
     }
 
-    /* ── Table section ── */
-    .table-section {
+    /* ── Content section ── */
+    .content-section {
       padding: 5rem 2rem;
       max-width: 900px;
       margin: 0 auto;
     }
 
+    /* ── Tab nav ── */
+    .tab-nav {
+      display: flex;
+      margin-bottom: 2.5rem;
+      border-bottom: 1px solid #1a1a2e;
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      padding: 0.5rem 1.4rem 0.5rem 0;
+      font-family: inherit;
+      font-size: 0.62rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #55556a;
+      cursor: pointer;
+      margin-bottom: -1px;
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    .tab-btn:hover { color: #a78bfa; }
+    .tab-btn.active { color: #a78bfa; border-bottom-color: #7c3aed; }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Table ── */
     .section-label {
       font-size: 0.65rem;
       letter-spacing: 0.25em;
@@ -154,17 +184,14 @@
 
     thead th:hover { color: #a78bfa; }
 
-    thead th.sortable::after {
-      content: ' ↕';
-      opacity: 0.3;
-    }
-
+    thead th.sortable::after { content: ' ↕'; opacity: 0.3; }
     thead th.sortable.asc::after  { content: ' ↑'; opacity: 1; color: #a78bfa; }
     thead th.sortable.desc::after { content: ' ↓'; opacity: 1; color: #a78bfa; }
 
     tbody tr {
       border-bottom: 1px solid #0f0f1a;
       transition: background 0.1s;
+      cursor: pointer;
     }
 
     tbody tr:hover { background: #0f0f1e; }
@@ -175,19 +202,91 @@
       vertical-align: top;
     }
 
-    tbody td:nth-child(4),
-    tbody td:nth-child(5) { color: #55556a; }
+    tbody td:nth-child(3),
+    tbody td:nth-child(4) { color: #55556a; }
 
-    tbody td:nth-child(1) { text-align: center; }
-
-    tbody td a {
-      color: #55556a;
-      text-decoration: none;
-      font-size: 0.9rem;
-      transition: color 0.15s;
+    /* ── Mosaic ── */
+    .mosaic-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 4px;
     }
 
-    tbody td a:hover { color: #a78bfa; }
+    .mosaic-item {
+      position: relative;
+      aspect-ratio: 1;
+      overflow: hidden;
+      display: block;
+      text-decoration: none;
+    }
+
+    .mosaic-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.3s;
+    }
+
+    .mosaic-placeholder {
+      width: 100%;
+      height: 100%;
+      background: #0f0f1a;
+    }
+
+    .mosaic-item:hover img { transform: scale(1.06); }
+
+    .mosaic-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(8, 8, 15, 0.85);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 0.75rem;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .mosaic-item:hover .mosaic-overlay { opacity: 1; }
+
+    .mosaic-album {
+      font-size: 0.8rem;
+      color: #f0f0ff;
+      font-weight: 400;
+      line-height: 1.3;
+    }
+
+    .mosaic-artist {
+      font-size: 0.7rem;
+      color: #a78bfa;
+      margin-top: 0.2rem;
+    }
+
+    /* ── Charts ── */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+
+    @media (max-width: 640px) {
+      .charts-grid { grid-template-columns: 1fr; }
+    }
+
+    .chart-box {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid #0f0f1a;
+      padding: 1.5rem;
+    }
+
+    .chart-label {
+      font-size: 0.62rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #55556a;
+      margin-bottom: 1rem;
+    }
 
     /* ── Footer ── */
     footer {
@@ -206,13 +305,7 @@
 
     footer a:hover { color: #a78bfa; }
 
-    /* ── Suggest form (inside hero box) ── */
-    .hero-divider {
-      border: none;
-      border-top: 1px solid rgba(255,255,255,0.08);
-      margin: 2rem 0;
-    }
-
+    /* ── Suggest form ── */
     .suggest-form {
       display: flex;
       flex-direction: column;
@@ -234,7 +327,6 @@
     }
 
     .suggest-form input:focus { border-color: #7c3aed; }
-
     .suggest-form input::placeholder { color: #35354a; }
 
     .suggest-form button {
@@ -271,15 +363,15 @@
 
       <div class="stats">
         <div>
-          <div class="stat-value">41</div>
+          <div class="stat-value">42</div>
           <div class="stat-label">Listened</div>
         </div>
         <div>
-          <div class="stat-value">29.1</div>
+          <div class="stat-value">29.7</div>
           <div class="stat-label">Hours</div>
         </div>
         <div>
-          <div class="stat-value">324</div>
+          <div class="stat-value">323</div>
           <div class="stat-label">To go</div>
         </div>
       </div>
@@ -290,7 +382,7 @@
 
       <div class="progress-row">
         <span>Progress</span>
-        <span>41 / 365</span>
+        <span>42 / 365</span>
       </div>
       <div class="bar-track">
         <div class="bar-fill"></div>
@@ -307,69 +399,139 @@
     </div>
   </section>
 
-  <section class="table-section">
-    <p class="section-label">All albums</p>
-    <div class="table-scroll">
-    <table id="albums-table">
-      <thead>
-        <tr>
-          <th></th>
-          <th class="sortable" onclick="sortTable(1)">Artist</th>
-          <th class="sortable" onclick="sortTable(2)">Album</th>
-          <th class="sortable" onclick="sortTable(3)">Year</th>
-          <th class="sortable" onclick="sortTable(4)">Duration (hrs)</th>
-          <th class="sortable" onclick="sortTable(5)">Genres</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td><a href="https://open.spotify.com/album/0S0y4THoNccPD2F5BWoS09?si=d8c7215905e0444d" target="_blank" rel="noopener">↗</a></td><td>A.L.I.S.O.N</td><td>Space Station</td><td>2018</td><td>0.7</td><td>synthwave, chillwave, vaporwave</td></tr>
-<tr><td><a href="https://open.spotify.com/album/0GGvrCnvLk60XskHMF3Wqt?si=51849ca5930d4106" target="_blank" rel="noopener">↗</a></td><td>A.L.I.S.O.N</td><td>Ultrasound</td><td>2022</td><td>0.6</td><td>synthwave, chillwave, vaporwave</td></tr>
-<tr><td><a href="https://open.spotify.com/album/7abGCgEyQPHebN5gDfLI2I?si=e7b79d62b55c4422" target="_blank" rel="noopener">↗</a></td><td>All Them Witches</td><td>Sleeping Through The War</td><td>2017</td><td>0.8</td><td>stoner rock, stoner metal, neo-psychedelic, psychedelic rock, space rock, sludge metal, blues rock</td></tr>
-<tr><td><a href="https://open.spotify.com/album/6HbJlAnTRhWae1F3lEwGkv?si=qEL_Ql07SMagPy_2ZVdUhg" target="_blank" rel="noopener">↗</a></td><td>Alt-J</td><td>An Awesome Wave</td><td>2012</td><td>0.7</td><td>indie, indie rock</td></tr>
-<tr><td><a href="https://open.spotify.com/album/5JzI3LUwkR64lHsVVRbiKO?si=10982156096b4b6a" target="_blank" rel="noopener">↗</a></td><td>Alt-J</td><td>The Dream</td><td>2022</td><td>0.8</td><td>indie, indie rock</td></tr>
-<tr><td><a href="https://open.spotify.com/album/79zQn0JeZ9tVX2T0VvpDGi?si=pONpgDOUQJWTIWmsWfW_pA" target="_blank" rel="noopener">↗</a></td><td>Billie Marten</td><td>Dog Eared</td><td>2025</td><td>0.6</td><td>unknown</td></tr>
-<tr><td><a href="https://open.spotify.com/album/1Mhn9VosyjtWn4dMPFlna6?si=3A1I0BkeR1CWDtjMVt3GqQ" target="_blank" rel="noopener">↗</a></td><td>Billy Joel</td><td>The Stranger (Legacy Edition)</td><td>1977</td><td>1.8</td><td>soft rock</td></tr>
-<tr><td><a href="https://open.spotify.com/album/5dJm26ISpb8WH1j1MY2cAi?si=UDbXaMhRR96W-FzE5UYU0A" target="_blank" rel="noopener">↗</a></td><td>Cari Cari</td><td>One More Trip Around The Sun</td><td>2025</td><td>0.6</td><td>unknown</td></tr>
-<tr><td><a href="https://open.spotify.com/album/0TIs1t3CvFQnwS6T7t2dol?si=509ac7aa9a2c43bd" target="_blank" rel="noopener">↗</a></td><td>DEADLETTER</td><td>Hysterical Strength</td><td>2024</td><td>0.8</td><td>post-punk</td></tr>
-<tr><td><a href="https://open.spotify.com/album/4CgnYQ1ImIJaoxkgCmYXVt?si=60gFkBPVRXigEyb2i96TPQ" target="_blank" rel="noopener">↗</a></td><td>DeWolff</td><td>Muscle Shoals</td><td>2024</td><td>0.8</td><td>blues rock</td></tr>
-<tr><td><a href="https://open.spotify.com/album/4E691gbRgo2Zb6ToII2DWO?si=FR-GBNCgSP2RvumcOlTI1w" target="_blank" rel="noopener">↗</a></td><td>Dijon</td><td>Absolutely</td><td>2021</td><td>0.5</td><td>unknown</td></tr>
-<tr><td><a href="https://open.spotify.com/album/1Yc0HbRlIZwaOY9jGpxMY5?si=462b2d7e4c4740cd" target="_blank" rel="noopener">↗</a></td><td>Eefje de Visser</td><td>Het Is</td><td>2013</td><td>0.7</td><td>nederpop</td></tr>
-<tr><td><a href="https://open.spotify.com/album/2PSgh7zJPShRNvmC8KxdBU?si=48e702ea371042bc" target="_blank" rel="noopener">↗</a></td><td>Eefje de Visser</td><td>Nachtlicht</td><td>2016</td><td>0.7</td><td>nederpop</td></tr>
-<tr><td><a href="https://open.spotify.com/album/1RTQqQrsiaNvJdCdTMBfhb?si=5fnKx6GZQDacgJLAtlmqhQ" target="_blank" rel="noopener">↗</a></td><td>Eefje de Visser</td><td>Vlijmscherp</td><td>2025</td><td>0.7</td><td>nederpop</td></tr>
-<tr><td><a href="https://open.spotify.com/album/4N5iqXMXJUZMUzhxDqYQxp?si=CHnXfW6jQRif1wsfn-X7qA" target="_blank" rel="noopener">↗</a></td><td>Elder</td><td>Dead Roots Stirring</td><td>2011</td><td>0.9</td><td>stoner metal, stoner rock, sludge metal, doom metal, space rock, psychedelic rock, drone metal, neo-psychedelic</td></tr>
-<tr><td><a href="https://open.spotify.com/album/5fpJxj58dgvrJICnhTTMgv?si=532d52dd25564924" target="_blank" rel="noopener">↗</a></td><td>Elder</td><td>The Gold & Silver Sessions</td><td>2019</td><td>0.6</td><td>stoner metal, stoner rock, sludge metal, doom metal, space rock, psychedelic rock, drone metal, neo-psychedelic</td></tr>
-<tr><td><a href="https://open.spotify.com/album/3DQueEd1Ft9PHWgovDzPKh?si=010c5c163d5241f0" target="_blank" rel="noopener">↗</a></td><td>Fred again..</td><td>Ten days</td><td>2024</td><td>0.8</td><td>stutter house, house, edm</td></tr>
-<tr><td><a href="https://open.spotify.com/album/5WcAxezP81vvEpyF4wXd6c?si=5_MIixLBSu-jHJczbfluCQ" target="_blank" rel="noopener">↗</a></td><td>Heath</td><td>Murmurations</td><td>2025</td><td>0.6</td><td>neo-psychedelic, psychedelic rock</td></tr>
-<tr><td><a href="https://open.spotify.com/album/0AZT0JAUcEJXQTfzB4MRIV?si=rRiha6ZyRKK6oDJ-KcYxQg" target="_blank" rel="noopener">↗</a></td><td>Hollow Ship</td><td>Future Remains</td><td>2020</td><td>0.6</td><td>neo-psychedelic, psychedelic rock</td></tr>
-<tr><td><a href="https://open.spotify.com/album/0rAcRhv5hDcq93qEf78s0E?si=2tOfMhhiTHWSa_v8K-YESQ" target="_blank" rel="noopener">↗</a></td><td>I am batman</td><td>I am batman</td><td>2022</td><td>0.8</td><td>unknown</td></tr>
-<tr><td><a href="https://open.spotify.com/album/6mveigIKhnMpTnIRfYtniA?si=Peh8SVAQSiOfqgwTDX6dxA" target="_blank" rel="noopener">↗</a></td><td>Ian Clement</td><td>Drawing Daggers</td><td>2013</td><td>0.8</td><td>unknown</td></tr>
-<tr><td><a href="https://open.spotify.com/album/148B89pZIIEGpNazsuiSz5?si=7603a68d9ea245dc" target="_blank" rel="noopener">↗</a></td><td>Kadavar</td><td>I Just Want To Be A Sound</td><td>2025</td><td>0.8</td><td>stoner rock, stoner metal, sludge metal, doom metal, space rock, psychedelic rock</td></tr>
-<tr><td><a href="https://open.spotify.com/album/031668YzIc2Lxmb8FiR8d9?si=box-I1dPTkGz8m74aQTr5g" target="_blank" rel="noopener">↗</a></td><td>King Buffalo</td><td>The Burden of Restlessness</td><td>2021</td><td>0.7</td><td>stoner rock, space rock, stoner metal, sludge metal, psychedelic rock, doom metal</td></tr>
-<tr><td><a href="https://open.spotify.com/album/3lz5rEeYmThErSvIQSBTCj?si=iSKWlpcbSXuGXloWtbV2vg" target="_blank" rel="noopener">↗</a></td><td>Kryptograf</td><td>Kryptonomicon</td><td>2025</td><td>0.6</td><td>stoner rock, stoner metal, space rock, norsk rock, doom metal, sludge metal</td></tr>
-<tr><td><a href="https://open.spotify.com/album/2iBubkygaX6SHYMKLajvVb?si=4d5fa2c2132e4c70" target="_blank" rel="noopener">↗</a></td><td>Leifur James</td><td>A Louder Silence</td><td>2018</td><td>0.8</td><td>experimental jazz</td></tr>
-<tr><td><a href="https://open.spotify.com/album/2cWNDHUgVyo4Zxj7GE7PTa?si=132d5b0e1e404cf8" target="_blank" rel="noopener">↗</a></td><td>MASSIVE HASSLE</td><td>Number One</td><td>2023</td><td>0.6</td><td>stoner rock, stoner metal</td></tr>
-<tr><td><a href="https://open.spotify.com/album/6YN8jfCZLngnYeAoaWy4RC?si=67ba5cf48fda4da3" target="_blank" rel="noopener">↗</a></td><td>Menahan Street Band</td><td>Make the Road By Walking</td><td>2008</td><td>0.6</td><td>retro soul</td></tr>
-<tr><td><a href="https://open.spotify.com/album/16l3FJwjZooUHbU37sdeeI?si=sFoPXFOuTjyF2zDFYKLkuw" target="_blank" rel="noopener">↗</a></td><td>Osees</td><td>Protean Threat</td><td>2020</td><td>0.6</td><td>neo-psychedelic, egg punk, psychedelic rock, garage rock, noise rock, krautrock</td></tr>
-<tr><td><a href="https://open.spotify.com/album/1rSbjr5U9J9rQ9sE7RxHFl?si=Tokz6UDMTsqByTTvWjHE7g" target="_blank" rel="noopener">↗</a></td><td>Parcels</td><td>LOVED</td><td>2025</td><td>0.8</td><td>indie soul</td></tr>
-<tr><td><a href="https://open.spotify.com/album/6nE5ZNfOwtsAeOiVGvDkWk?si=12e2f1a918284d8b" target="_blank" rel="noopener">↗</a></td><td>Radar Men from the Moon</td><td>Echo Forever</td><td>2012</td><td>0.8</td><td>space rock, stoner rock, krautrock, psychedelic rock, noise rock, stoner metal, drone metal, neo-psychedelic, acid rock</td></tr>
-<tr><td><a href="https://open.spotify.com/album/4P0wMxlWvsilPWY5tbvVKS?si=1Cq5bTu7QZ-DfOZvCKIk_Q" target="_blank" rel="noopener">↗</a></td><td>Slomosa</td><td>Slomosa</td><td>2020</td><td>0.6</td><td>stoner rock, stoner metal, norsk rock, sludge metal</td></tr>
-<tr><td><a href="https://open.spotify.com/album/6ueXrPpJFG9aBBmMX2A6PF?si=Fl354WkJQLyuHPFmmOhAbw" target="_blank" rel="noopener">↗</a></td><td>Slomosa</td><td>Tundra Rock</td><td>2024</td><td>0.6</td><td>stoner rock, stoner metal, norsk rock, sludge metal</td></tr>
-<tr><td><a href="https://open.spotify.com/album/37rNuexqEXWeSIOiJtn3A9?si=VEIjWG6OS6aim7gJnFEuIA" target="_blank" rel="noopener">↗</a></td><td>The Beach Boys</td><td>Smiley Smile (Remastered)</td><td>1967</td><td>0.5</td><td>baroque pop</td></tr>
-<tr><td><a href="https://open.spotify.com/album/4BBECT2QKT4LZPf9CPuvat?si=hOuBimgyRkupahUc_TunSA" target="_blank" rel="noopener">↗</a></td><td>The Bones of J.R. Jones</td><td>Radio Waves (Deluxe)</td><td>2025</td><td>1.0</td><td>southern gothic, blues rock, modern blues, country blues</td></tr>
-<tr><td><a href="https://open.spotify.com/album/3cQWEV1dkuOosKa2EJNaxj?si=b6YugXh1QKi2-yWCWbUM9Q" target="_blank" rel="noopener">↗</a></td><td>The Bones of J.R. Jones</td><td>Spirit's Furnace</td><td>2016</td><td>0.5</td><td>southern gothic, blues rock, modern blues, country blues</td></tr>
-<tr><td><a href="https://open.spotify.com/album/2IC2TP7bnwkfl56vjabLQt?si=XLo97ymNQtis3myjZ5XoiQ" target="_blank" rel="noopener">↗</a></td><td>Viagra Boys</td><td>Cave World</td><td>2022</td><td>0.7</td><td>post-punk, egg punk</td></tr>
-<tr><td><a href="https://open.spotify.com/album/4wKRrC9FONCHBMgzX5NM3x?si=49974b0357da46d3" target="_blank" rel="noopener">↗</a></td><td>Warhaus</td><td>Karaoke Moon</td><td>2024</td><td>0.7</td><td>unknown</td></tr>
-<tr><td><a href="https://open.spotify.com/album/2dMzewYgORjajV2nLV0iwV?si=dG90AHIBTDK1U7_Wp0FyCw" target="_blank" rel="noopener">↗</a></td><td>Weval</td><td>Dreaming</td><td>2023</td><td>0.2</td><td>unknown</td></tr>
-<tr><td><a href="https://open.spotify.com/album/47mFpUDunR1rckC31EBT0g?si=360c47669e2845de" target="_blank" rel="noopener">↗</a></td><td>Weval</td><td>Half Age EP</td><td>2013</td><td>0.5</td><td>unknown</td></tr>
-<tr><td><a href="https://open.spotify.com/album/51zkn8CSA5Tx2wKaGpl9ci?si=15f91552419745d1" target="_blank" rel="noopener">↗</a></td><td>Weval</td><td>Weval</td><td>2016</td><td>0.9</td><td>unknown</td></tr>
-<tr><td><a href="https://open.spotify.com/album/14miHHQBXPPlt61Ax0SK2W?si=c12cbeca00e04209" target="_blank" rel="noopener">↗</a></td><td>Yin Yin</td><td>Yatta!</td><td>2026</td><td>0.7</td><td>neo-psychedelic</td></tr>
-      </tbody>
-    </table>
+  <section class="content-section">
+
+    <nav class="tab-nav">
+      <button class="tab-btn active" data-tab="list" onclick="showTab('list')">List</button>
+      <button class="tab-btn" data-tab="mosaic" onclick="showTab('mosaic')">Mosaic</button>
+      <button class="tab-btn" data-tab="visualizations" onclick="showTab('visualizations')">Visualizations</button>
+    </nav>
+
+    <div id="panel-list" class="tab-panel active">
+      <div class="table-scroll">
+      <table id="albums-table">
+        <thead>
+          <tr>
+            <th class="sortable" onclick="sortTable(0)">Artist</th>
+            <th class="sortable" onclick="sortTable(1)">Album</th>
+            <th class="sortable" onclick="sortTable(2)">Year</th>
+            <th class="sortable" onclick="sortTable(3)">Duration (min)</th>
+            <th class="sortable" onclick="sortTable(4)">Genres</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr data-url="https://open.spotify.com/album/0S0y4THoNccPD2F5BWoS09?si=d8c7215905e0444d"><td>A.L.I.S.O.N</td><td>Space Station</td><td>2018</td><td>42</td><td>synthwave, chillwave, vaporwave</td></tr>
+<tr data-url="https://open.spotify.com/album/0GGvrCnvLk60XskHMF3Wqt?si=51849ca5930d4106"><td>A.L.I.S.O.N</td><td>Ultrasound</td><td>2022</td><td>34</td><td>synthwave, chillwave, vaporwave</td></tr>
+<tr data-url="https://open.spotify.com/album/7abGCgEyQPHebN5gDfLI2I?si=e7b79d62b55c4422"><td>All Them Witches</td><td>Sleeping Through The War</td><td>2017</td><td>46</td><td>stoner rock, stoner metal, neo-psychedelic, psychedelic rock, space rock, sludge metal, blues rock</td></tr>
+<tr data-url="https://open.spotify.com/album/6HbJlAnTRhWae1F3lEwGkv?si=qEL_Ql07SMagPy_2ZVdUhg"><td>Alt-J</td><td>An Awesome Wave</td><td>2012</td><td>44</td><td>indie, indie rock</td></tr>
+<tr data-url="https://open.spotify.com/album/5JzI3LUwkR64lHsVVRbiKO?si=10982156096b4b6a"><td>Alt-J</td><td>The Dream</td><td>2022</td><td>50</td><td>indie, indie rock</td></tr>
+<tr data-url="https://open.spotify.com/album/79zQn0JeZ9tVX2T0VvpDGi?si=pONpgDOUQJWTIWmsWfW_pA"><td>Billie Marten</td><td>Dog Eared</td><td>2025</td><td>37</td><td>unknown</td></tr>
+<tr data-url="https://open.spotify.com/album/1Mhn9VosyjtWn4dMPFlna6?si=3A1I0BkeR1CWDtjMVt3GqQ"><td>Billy Joel</td><td>The Stranger (Legacy Edition)</td><td>1977</td><td>107</td><td>soft rock</td></tr>
+<tr data-url="https://open.spotify.com/album/5dJm26ISpb8WH1j1MY2cAi?si=UDbXaMhRR96W-FzE5UYU0A"><td>Cari Cari</td><td>One More Trip Around The Sun</td><td>2025</td><td>37</td><td>unknown</td></tr>
+<tr data-url="https://open.spotify.com/album/0TIs1t3CvFQnwS6T7t2dol?si=509ac7aa9a2c43bd"><td>DEADLETTER</td><td>Hysterical Strength</td><td>2024</td><td>48</td><td>post-punk</td></tr>
+<tr data-url="https://open.spotify.com/album/4CgnYQ1ImIJaoxkgCmYXVt?si=60gFkBPVRXigEyb2i96TPQ"><td>DeWolff</td><td>Muscle Shoals</td><td>2024</td><td>50</td><td>blues rock</td></tr>
+<tr data-url="https://open.spotify.com/album/4E691gbRgo2Zb6ToII2DWO?si=FR-GBNCgSP2RvumcOlTI1w"><td>Dijon</td><td>Absolutely</td><td>2021</td><td>32</td><td>unknown</td></tr>
+<tr data-url="https://open.spotify.com/album/1Yc0HbRlIZwaOY9jGpxMY5?si=462b2d7e4c4740cd"><td>Eefje de Visser</td><td>Het Is</td><td>2013</td><td>42</td><td>nederpop</td></tr>
+<tr data-url="https://open.spotify.com/album/2PSgh7zJPShRNvmC8KxdBU?si=48e702ea371042bc"><td>Eefje de Visser</td><td>Nachtlicht</td><td>2016</td><td>42</td><td>nederpop</td></tr>
+<tr data-url="https://open.spotify.com/album/1RTQqQrsiaNvJdCdTMBfhb?si=5fnKx6GZQDacgJLAtlmqhQ"><td>Eefje de Visser</td><td>Vlijmscherp</td><td>2025</td><td>42</td><td>nederpop</td></tr>
+<tr data-url="https://open.spotify.com/album/4N5iqXMXJUZMUzhxDqYQxp?si=CHnXfW6jQRif1wsfn-X7qA"><td>Elder</td><td>Dead Roots Stirring</td><td>2011</td><td>52</td><td>stoner metal, stoner rock, sludge metal, doom metal, space rock, psychedelic rock, drone metal, neo-psychedelic</td></tr>
+<tr data-url="https://open.spotify.com/album/5fpJxj58dgvrJICnhTTMgv?si=532d52dd25564924"><td>Elder</td><td>The Gold & Silver Sessions</td><td>2019</td><td>34</td><td>stoner metal, stoner rock, sludge metal, doom metal, space rock, psychedelic rock, drone metal, neo-psychedelic</td></tr>
+<tr data-url="https://open.spotify.com/album/3DQueEd1Ft9PHWgovDzPKh?si=010c5c163d5241f0"><td>Fred again..</td><td>Ten days</td><td>2024</td><td>47</td><td>stutter house, house, edm</td></tr>
+<tr data-url="https://open.spotify.com/album/5WcAxezP81vvEpyF4wXd6c?si=5_MIixLBSu-jHJczbfluCQ"><td>Heath</td><td>Murmurations</td><td>2025</td><td>33</td><td>neo-psychedelic, psychedelic rock</td></tr>
+<tr data-url="https://open.spotify.com/album/0AZT0JAUcEJXQTfzB4MRIV?si=rRiha6ZyRKK6oDJ-KcYxQg"><td>Hollow Ship</td><td>Future Remains</td><td>2020</td><td>36</td><td>neo-psychedelic, psychedelic rock</td></tr>
+<tr data-url="https://open.spotify.com/album/0rAcRhv5hDcq93qEf78s0E?si=2tOfMhhiTHWSa_v8K-YESQ"><td>I am batman</td><td>I am batman</td><td>2022</td><td>48</td><td>unknown</td></tr>
+<tr data-url="https://open.spotify.com/album/6mveigIKhnMpTnIRfYtniA?si=Peh8SVAQSiOfqgwTDX6dxA"><td>Ian Clement</td><td>Drawing Daggers</td><td>2013</td><td>51</td><td>unknown</td></tr>
+<tr data-url="https://open.spotify.com/album/148B89pZIIEGpNazsuiSz5?si=7603a68d9ea245dc"><td>Kadavar</td><td>I Just Want To Be A Sound</td><td>2025</td><td>45</td><td>stoner rock, stoner metal, sludge metal, doom metal, space rock, psychedelic rock</td></tr>
+<tr data-url="https://open.spotify.com/album/031668YzIc2Lxmb8FiR8d9?si=box-I1dPTkGz8m74aQTr5g"><td>King Buffalo</td><td>The Burden of Restlessness</td><td>2021</td><td>40</td><td>stoner rock, space rock, stoner metal, sludge metal, psychedelic rock, doom metal</td></tr>
+<tr data-url="https://open.spotify.com/album/3lz5rEeYmThErSvIQSBTCj?si=iSKWlpcbSXuGXloWtbV2vg"><td>Kryptograf</td><td>Kryptonomicon</td><td>2025</td><td>34</td><td>stoner rock, stoner metal, space rock, norsk rock, doom metal, sludge metal</td></tr>
+<tr data-url="https://open.spotify.com/album/2iBubkygaX6SHYMKLajvVb?si=4d5fa2c2132e4c70"><td>Leifur James</td><td>A Louder Silence</td><td>2018</td><td>51</td><td>experimental jazz</td></tr>
+<tr data-url="https://open.spotify.com/album/2cWNDHUgVyo4Zxj7GE7PTa?si=132d5b0e1e404cf8"><td>MASSIVE HASSLE</td><td>Number One</td><td>2023</td><td>37</td><td>stoner rock, stoner metal</td></tr>
+<tr data-url="https://open.spotify.com/album/6YN8jfCZLngnYeAoaWy4RC?si=67ba5cf48fda4da3"><td>Menahan Street Band</td><td>Make the Road By Walking</td><td>2008</td><td>35</td><td>retro soul</td></tr>
+<tr data-url="https://open.spotify.com/album/2l3QxNo4QubBNmVKxLeum0?si=Wod8T-CIQR2hFqNLU8X0Jw"><td>Neil Young</td><td>Harvest (2009 Remaster)</td><td>1972</td><td>38</td><td>classic rock, folk rock, singer-songwriter, roots rock</td></tr>
+<tr data-url="https://open.spotify.com/album/16l3FJwjZooUHbU37sdeeI?si=sFoPXFOuTjyF2zDFYKLkuw"><td>Osees</td><td>Protean Threat</td><td>2020</td><td>38</td><td>neo-psychedelic, egg punk, psychedelic rock, garage rock, noise rock, krautrock</td></tr>
+<tr data-url="https://open.spotify.com/album/1rSbjr5U9J9rQ9sE7RxHFl?si=Tokz6UDMTsqByTTvWjHE7g"><td>Parcels</td><td>LOVED</td><td>2025</td><td>46</td><td>indie soul</td></tr>
+<tr data-url="https://open.spotify.com/album/6nE5ZNfOwtsAeOiVGvDkWk?si=12e2f1a918284d8b"><td>Radar Men from the Moon</td><td>Echo Forever</td><td>2012</td><td>51</td><td>space rock, stoner rock, krautrock, psychedelic rock, noise rock, stoner metal, drone metal, neo-psychedelic, acid rock</td></tr>
+<tr data-url="https://open.spotify.com/album/4P0wMxlWvsilPWY5tbvVKS?si=1Cq5bTu7QZ-DfOZvCKIk_Q"><td>Slomosa</td><td>Slomosa</td><td>2020</td><td>38</td><td>stoner rock, stoner metal, norsk rock, sludge metal</td></tr>
+<tr data-url="https://open.spotify.com/album/6ueXrPpJFG9aBBmMX2A6PF?si=Fl354WkJQLyuHPFmmOhAbw"><td>Slomosa</td><td>Tundra Rock</td><td>2024</td><td>38</td><td>stoner rock, stoner metal, norsk rock, sludge metal</td></tr>
+<tr data-url="https://open.spotify.com/album/37rNuexqEXWeSIOiJtn3A9?si=VEIjWG6OS6aim7gJnFEuIA"><td>The Beach Boys</td><td>Smiley Smile (Remastered)</td><td>1967</td><td>28</td><td>baroque pop</td></tr>
+<tr data-url="https://open.spotify.com/album/4BBECT2QKT4LZPf9CPuvat?si=hOuBimgyRkupahUc_TunSA"><td>The Bones of J.R. Jones</td><td>Radio Waves (Deluxe)</td><td>2025</td><td>63</td><td>southern gothic, blues rock, modern blues, country blues</td></tr>
+<tr data-url="https://open.spotify.com/album/3cQWEV1dkuOosKa2EJNaxj?si=b6YugXh1QKi2-yWCWbUM9Q"><td>The Bones of J.R. Jones</td><td>Spirit's Furnace</td><td>2016</td><td>30</td><td>southern gothic, blues rock, modern blues, country blues</td></tr>
+<tr data-url="https://open.spotify.com/album/2IC2TP7bnwkfl56vjabLQt?si=XLo97ymNQtis3myjZ5XoiQ"><td>Viagra Boys</td><td>Cave World</td><td>2022</td><td>40</td><td>post-punk, egg punk</td></tr>
+<tr data-url="https://open.spotify.com/album/4wKRrC9FONCHBMgzX5NM3x?si=49974b0357da46d3"><td>Warhaus</td><td>Karaoke Moon</td><td>2024</td><td>43</td><td>unknown</td></tr>
+<tr data-url="https://open.spotify.com/album/2dMzewYgORjajV2nLV0iwV?si=dG90AHIBTDK1U7_Wp0FyCw"><td>Weval</td><td>Dreaming</td><td>2023</td><td>12</td><td>unknown</td></tr>
+<tr data-url="https://open.spotify.com/album/47mFpUDunR1rckC31EBT0g?si=360c47669e2845de"><td>Weval</td><td>Half Age EP</td><td>2013</td><td>29</td><td>unknown</td></tr>
+<tr data-url="https://open.spotify.com/album/51zkn8CSA5Tx2wKaGpl9ci?si=15f91552419745d1"><td>Weval</td><td>Weval</td><td>2016</td><td>51</td><td>unknown</td></tr>
+<tr data-url="https://open.spotify.com/album/14miHHQBXPPlt61Ax0SK2W?si=c12cbeca00e04209"><td>Yin Yin</td><td>Yatta!</td><td>2026</td><td>41</td><td>neo-psychedelic</td></tr>
+        </tbody>
+      </table>
+      </div>
     </div>
+
+    <div id="panel-mosaic" class="tab-panel">
+      <div class="mosaic-grid">
+        <a class="mosaic-item" href="https://open.spotify.com/album/0S0y4THoNccPD2F5BWoS09?si=d8c7215905e0444d" target="_blank" rel="noopener"><img src="https://i.scdn.co/image/ab67616d0000b27302d257b8ed2aebcefb110a25" alt="" loading="lazy"><div class="mosaic-overlay"><span class="mosaic-album">Space Station</span><span class="mosaic-artist">A.L.I.S.O.N</span></div></a>
+<a class="mosaic-item" href="https://open.spotify.com/album/0GGvrCnvLk60XskHMF3Wqt?si=51849ca5930d4106" target="_blank" rel="noopener"><img src="https://i.scdn.co/image/ab67616d0000b2732bd0a6c84a5347f9249829e0" alt="" loading="lazy"><div class="mosaic-overlay"><span class="mosaic-album">Ultrasound</span><span class="mosaic-artist">A.L.I.S.O.N</span></div></a>
+<a class="mosaic-item" href="https://open.spotify.com/album/7abGCgEyQPHebN5gDfLI2I?si=e7b79d62b55c4422" target="_blank" rel="noopener"><img src="https://i.scdn.co/image/ab67616d0000b273c9989785e4d08952f6b668cf" alt="" loading="lazy"><div class="mosaic-overlay"><span class="mosaic-album">Sleeping Through The War</span><span class="mosaic-artist">All Them Witches</span></div></a>
+<a class="mosaic-item" href="https://open.spotify.com/album/6HbJlAnTRhWae1F3lEwGkv?si=qEL_Ql07SMagPy_2ZVdUhg" target="_blank" rel="noopener"><img src="https://i.scdn.co/image/ab67616d0000b2731e1ca90cd8fdbb0ac890a926" alt="" loading="lazy"><div class="mosaic-overlay"><span class="mosaic-album">An Awesome Wave</span><span class="mosaic-artist">Alt-J</span></div></a>
+<a class="mosaic-item" href="https://open.spotify.com/album/5JzI3LUwkR64lHsVVRbiKO?si=10982156096b4b6a" target="_blank" rel="noopener"><img src="https://i.scdn.co/image/ab67616d0000b27395b1bbaa45a5f8a5175b78fd" alt="" loading="lazy"><div class="mosaic-overlay"><span class="mosaic-album">The Dream</span><span class="mosaic-artist">Alt-J</span></div></a>
+<a class="mosaic-item" href="https://open.spotify.com/album/79zQn0JeZ9tVX2T0VvpDGi?si=pONpgDOUQJWTIWmsWfW_pA" target="_blank" rel="noopener"><img src="https://i.scdn.co/image/ab67616d0000b2737c3ce9ae88d705279dc0a11d" alt="" loading="lazy"><div class="mosaic-overlay"><span class="mosaic-album">Dog Eared</span><span class="mosaic-artist">Billie Marten</span></div></a>
+<a class="mosaic-item" href="https://open.spotify.com/album/1Mhn9VosyjtWn4dMPFlna6?si=3A1I0BkeR1CWDtjMVt3GqQ" target="_blank" rel="noopener"><img src="https://i.scdn.co/image/ab67616d0000b2736ce61113662ecf693b605ee5" alt="" loading="lazy"><div class="mosaic-overlay"><span class="mosaic-album">The Stranger (Legacy Edition)</span><span class="mosaic-artist">Billy Joel</span></div></a>
+<a class="mosaic-item" href="https://open.spotify.com/album/5dJm26ISpb8WH1j1MY2cAi?si=UDbXaMhRR96W-FzE5UYU0A" target="_blank" rel="noopener"><img src="https://i.scdn.co/image/ab67616d0000b273f1a4c4b5f57cbe54df8e92fa" alt="" loading="lazy"><div class="mosaic-overlay"><span class="mosaic-album">One More Trip Around The Sun</span><span class="mosaic-artist">Cari Cari</span></div></a>
+<a class="mosaic-item" href="https://open.spotify.com/album/0TIs1t3CvFQnwS6T7t2dol?si=509ac7aa9a2c43bd" target="_blank" rel="noopener"><img src="https://i.scdn.co/image/ab67616d0000b273cf7ec398357e3565ad8fd925" alt="" loading="lazy"><div class="mosaic-overlay"><span class="mosaic-album">Hysterical Strength</span><span class="mosaic-artist">DEADLETTER</span></div></a>
+<a class="mosaic-item" href="https://open.spotify.com/album/4CgnYQ1ImIJaoxkgCmYXVt?si=60gFkBPVRXigEyb2i96TPQ" target="_blank" rel="noopener"><img src="https://i.scdn.co/image/ab67616d0000b27361a1183ca48c2ab49f3bb507" alt="" loading="lazy"><div class="mosaic-overlay"><span class="mosaic-album">Muscle Shoals</span><span class="mosaic-artist">DeWolff</span></div></a>
+<a class="mosaic-item" href="https://open.spotify.com/album/4E691gbRgo2Zb6ToII2DWO?si=FR-GBNCgSP2RvumcOlTI1w" target="_blank" rel="noopener"><img src="https://i.scdn.co/image/ab67616d0000b273708bfbe1855174ebc9a0f225" alt="" loading="lazy"><div class="mosaic-overlay"><span class="mosaic-album">Absolutely</span><span class="mosaic-artist">Dijon</span></div></a>
+<a class="mosaic-item" href="https://open.spotify.com/album/1Yc0HbRlIZwaOY9jGpxMY5?si=462b2d7e4c4740cd" target="_blank" rel="noopener"><img src="https://i.scdn.co/image/ab67616d0000b2739941f14bdfac8780afd20195" alt="" loading="lazy"><div class="mosaic-overlay"><span class="mosaic-album">Het Is</span><span class="mosaic-artist">Eefje de Visser</span></div></a>
+<a class="mosaic-item" href="https://open.spotify.com/album/2PSgh7zJPShRNvmC8KxdBU?si=48e702ea371042bc" target="_blank" rel="noopener"><img src="https://i.scdn.co/image/ab67616d0000b2737cd8cedd382054f920845187" alt="" loading="lazy"><div class="mosaic-overlay"><span class="mosaic-album">Nachtlicht</span><span class="mosaic-artist">Eefje de Visser</span></div></a>
+<a class="mosaic-item" href="https://open.spotify.com/album/1RTQqQrsiaNvJdCdTMBfhb?si=5fnKx6GZQDacgJLAtlmqhQ" target="_blank" rel="noopener"><img src="https://i.scdn.co/image/ab67616d0000b273057c5c2a9c3799e0368ebdcd" alt="" loading="lazy"><div class="mosaic-overlay"><span class="mosaic-album">Vlijmscherp</span><span class="mosaic-artist">Eefje de Visser</span></div></a>
+<a class="mosaic-item" href="https://open.spotify.com/album/4N5iqXMXJUZMUzhxDqYQxp?si=CHnXfW6jQRif1wsfn-X7qA" target="_blank" rel="noopener"><img src="https://i.scdn.co/image/c9d1284a719ce2f9120cf446572863bd6c68bea0" alt="" loading="lazy"><div class="mosaic-overlay"><span class="mosaic-album">Dead Roots Stirring</span><span class="mosaic-artist">Elder</span></div></a>
+<a class="mosaic-item" href="https://open.spotify.com/album/5fpJxj58dgvrJICnhTTMgv?si=532d52dd25564924" target="_blank" rel="noopener"><img src="https://i.scdn.co/image/ab67616d0000b2733d8266ee905ff60f985ba1ce" alt="" loading="lazy"><div class="mosaic-overlay"><span class="mosaic-album">The Gold &amp; Silver Sessions</span><span class="mosaic-artist">Elder</span></div></a>
+<a class="mosaic-item" href="https://open.spotify.com/album/3DQueEd1Ft9PHWgovDzPKh?si=010c5c163d5241f0" target="_blank" rel="noopener"><img src="https://i.scdn.co/image/ab67616d0000b2739574df129a4a2f4fa4990286" alt="" loading="lazy"><div class="mosaic-overlay"><span class="mosaic-album">Ten days</span><span class="mosaic-artist">Fred again..</span></div></a>
+<a class="mosaic-item" href="https://open.spotify.com/album/5WcAxezP81vvEpyF4wXd6c?si=5_MIixLBSu-jHJczbfluCQ" target="_blank" rel="noopener"><img src="https://i.scdn.co/image/ab67616d0000b27313d8b13b5bf4c90d0841d8a1" alt="" loading="lazy"><div class="mosaic-overlay"><span class="mosaic-album">Murmurations</span><span class="mosaic-artist">Heath</span></div></a>
+<a class="mosaic-item" href="https://open.spotify.com/album/0AZT0JAUcEJXQTfzB4MRIV?si=rRiha6ZyRKK6oDJ-KcYxQg" target="_blank" rel="noopener"><img src="https://i.scdn.co/image/ab67616d0000b273b0bf66071e27c1858121ccf3" alt="" loading="lazy"><div class="mosaic-overlay"><span class="mosaic-album">Future Remains</span><span class="mosaic-artist">Hollow Ship</span></div></a>
+<a class="mosaic-item" href="https://open.spotify.com/album/0rAcRhv5hDcq93qEf78s0E?si=2tOfMhhiTHWSa_v8K-YESQ" target="_blank" rel="noopener"><img src="https://i.scdn.co/image/ab67616d0000b2739bba94fa5768b6226287f5cd" alt="" loading="lazy"><div class="mosaic-overlay"><span class="mosaic-album">I am batman</span><span class="mosaic-artist">I am batman</span></div></a>
+<a class="mosaic-item" href="https://open.spotify.com/album/6mveigIKhnMpTnIRfYtniA?si=Peh8SVAQSiOfqgwTDX6dxA" target="_blank" rel="noopener"><img src="https://i.scdn.co/image/ab67616d0000b273bf1bd4723848a74a8f71466f" alt="" loading="lazy"><div class="mosaic-overlay"><span class="mosaic-album">Drawing Daggers</span><span class="mosaic-artist">Ian Clement</span></div></a>
+<a class="mosaic-item" href="https://open.spotify.com/album/148B89pZIIEGpNazsuiSz5?si=7603a68d9ea245dc" target="_blank" rel="noopener"><img src="https://i.scdn.co/image/ab67616d0000b27373a3f53b6dc9d35021a5bfcc" alt="" loading="lazy"><div class="mosaic-overlay"><span class="mosaic-album">I Just Want To Be A Sound</span><span class="mosaic-artist">Kadavar</span></div></a>
+<a class="mosaic-item" href="https://open.spotify.com/album/031668YzIc2Lxmb8FiR8d9?si=box-I1dPTkGz8m74aQTr5g" target="_blank" rel="noopener"><img src="https://i.scdn.co/image/ab67616d0000b27359d291aeda742834b003cc3a" alt="" loading="lazy"><div class="mosaic-overlay"><span class="mosaic-album">The Burden of Restlessness</span><span class="mosaic-artist">King Buffalo</span></div></a>
+<a class="mosaic-item" href="https://open.spotify.com/album/3lz5rEeYmThErSvIQSBTCj?si=iSKWlpcbSXuGXloWtbV2vg" target="_blank" rel="noopener"><img src="https://i.scdn.co/image/ab67616d0000b273928c93888f9b3a6d094b5dd6" alt="" loading="lazy"><div class="mosaic-overlay"><span class="mosaic-album">Kryptonomicon</span><span class="mosaic-artist">Kryptograf</span></div></a>
+<a class="mosaic-item" href="https://open.spotify.com/album/2iBubkygaX6SHYMKLajvVb?si=4d5fa2c2132e4c70" target="_blank" rel="noopener"><img src="https://i.scdn.co/image/ab67616d0000b273089307460a76bd5e328fa38f" alt="" loading="lazy"><div class="mosaic-overlay"><span class="mosaic-album">A Louder Silence</span><span class="mosaic-artist">Leifur James</span></div></a>
+<a class="mosaic-item" href="https://open.spotify.com/album/2cWNDHUgVyo4Zxj7GE7PTa?si=132d5b0e1e404cf8" target="_blank" rel="noopener"><img src="https://i.scdn.co/image/ab67616d0000b2732312b437a34eb1ee6882eeb9" alt="" loading="lazy"><div class="mosaic-overlay"><span class="mosaic-album">Number One</span><span class="mosaic-artist">MASSIVE HASSLE</span></div></a>
+<a class="mosaic-item" href="https://open.spotify.com/album/6YN8jfCZLngnYeAoaWy4RC?si=67ba5cf48fda4da3" target="_blank" rel="noopener"><img src="https://i.scdn.co/image/ab67616d0000b27397787c1ac686f989a3cf142a" alt="" loading="lazy"><div class="mosaic-overlay"><span class="mosaic-album">Make the Road By Walking</span><span class="mosaic-artist">Menahan Street Band</span></div></a>
+<a class="mosaic-item" href="https://open.spotify.com/album/2l3QxNo4QubBNmVKxLeum0?si=Wod8T-CIQR2hFqNLU8X0Jw" target="_blank" rel="noopener"><img src="https://i.scdn.co/image/ab67616d0000b27340007250b3b5624f2c63d050" alt="" loading="lazy"><div class="mosaic-overlay"><span class="mosaic-album">Harvest (2009 Remaster)</span><span class="mosaic-artist">Neil Young</span></div></a>
+<a class="mosaic-item" href="https://open.spotify.com/album/16l3FJwjZooUHbU37sdeeI?si=sFoPXFOuTjyF2zDFYKLkuw" target="_blank" rel="noopener"><img src="https://i.scdn.co/image/ab67616d0000b273ac85287fdf557a68fb576774" alt="" loading="lazy"><div class="mosaic-overlay"><span class="mosaic-album">Protean Threat</span><span class="mosaic-artist">Osees</span></div></a>
+<a class="mosaic-item" href="https://open.spotify.com/album/1rSbjr5U9J9rQ9sE7RxHFl?si=Tokz6UDMTsqByTTvWjHE7g" target="_blank" rel="noopener"><img src="https://i.scdn.co/image/ab67616d0000b273d076abbd008ad3c6d65112eb" alt="" loading="lazy"><div class="mosaic-overlay"><span class="mosaic-album">LOVED</span><span class="mosaic-artist">Parcels</span></div></a>
+<a class="mosaic-item" href="https://open.spotify.com/album/6nE5ZNfOwtsAeOiVGvDkWk?si=12e2f1a918284d8b" target="_blank" rel="noopener"><img src="https://i.scdn.co/image/ab67616d0000b273f2b411249fef6040a10e9116" alt="" loading="lazy"><div class="mosaic-overlay"><span class="mosaic-album">Echo Forever</span><span class="mosaic-artist">Radar Men from the Moon</span></div></a>
+<a class="mosaic-item" href="https://open.spotify.com/album/4P0wMxlWvsilPWY5tbvVKS?si=1Cq5bTu7QZ-DfOZvCKIk_Q" target="_blank" rel="noopener"><img src="https://i.scdn.co/image/ab67616d0000b27384bbdf818f4dc591725ff8d3" alt="" loading="lazy"><div class="mosaic-overlay"><span class="mosaic-album">Slomosa</span><span class="mosaic-artist">Slomosa</span></div></a>
+<a class="mosaic-item" href="https://open.spotify.com/album/6ueXrPpJFG9aBBmMX2A6PF?si=Fl354WkJQLyuHPFmmOhAbw" target="_blank" rel="noopener"><img src="https://i.scdn.co/image/ab67616d0000b273a9cb696f76b8d333e3378cec" alt="" loading="lazy"><div class="mosaic-overlay"><span class="mosaic-album">Tundra Rock</span><span class="mosaic-artist">Slomosa</span></div></a>
+<a class="mosaic-item" href="https://open.spotify.com/album/37rNuexqEXWeSIOiJtn3A9?si=VEIjWG6OS6aim7gJnFEuIA" target="_blank" rel="noopener"><img src="https://i.scdn.co/image/ab67616d0000b273fb9dac3244b8486758058a81" alt="" loading="lazy"><div class="mosaic-overlay"><span class="mosaic-album">Smiley Smile (Remastered)</span><span class="mosaic-artist">The Beach Boys</span></div></a>
+<a class="mosaic-item" href="https://open.spotify.com/album/4BBECT2QKT4LZPf9CPuvat?si=hOuBimgyRkupahUc_TunSA" target="_blank" rel="noopener"><img src="https://i.scdn.co/image/ab67616d0000b2738da7259fa098a629080d68d3" alt="" loading="lazy"><div class="mosaic-overlay"><span class="mosaic-album">Radio Waves (Deluxe)</span><span class="mosaic-artist">The Bones of J.R. Jones</span></div></a>
+<a class="mosaic-item" href="https://open.spotify.com/album/3cQWEV1dkuOosKa2EJNaxj?si=b6YugXh1QKi2-yWCWbUM9Q" target="_blank" rel="noopener"><img src="https://i.scdn.co/image/ab67616d0000b27364007982dcc5bad59afc1232" alt="" loading="lazy"><div class="mosaic-overlay"><span class="mosaic-album">Spirit's Furnace</span><span class="mosaic-artist">The Bones of J.R. Jones</span></div></a>
+<a class="mosaic-item" href="https://open.spotify.com/album/2IC2TP7bnwkfl56vjabLQt?si=XLo97ymNQtis3myjZ5XoiQ" target="_blank" rel="noopener"><img src="https://i.scdn.co/image/ab67616d0000b273f77d64b0ee2dc42b32606faa" alt="" loading="lazy"><div class="mosaic-overlay"><span class="mosaic-album">Cave World</span><span class="mosaic-artist">Viagra Boys</span></div></a>
+<a class="mosaic-item" href="https://open.spotify.com/album/4wKRrC9FONCHBMgzX5NM3x?si=49974b0357da46d3" target="_blank" rel="noopener"><img src="https://i.scdn.co/image/ab67616d0000b273cce177afd47f976a1ea484d1" alt="" loading="lazy"><div class="mosaic-overlay"><span class="mosaic-album">Karaoke Moon</span><span class="mosaic-artist">Warhaus</span></div></a>
+<a class="mosaic-item" href="https://open.spotify.com/album/2dMzewYgORjajV2nLV0iwV?si=dG90AHIBTDK1U7_Wp0FyCw" target="_blank" rel="noopener"><img src="https://i.scdn.co/image/ab67616d0000b273de9ca5a72a0cca756860afe2" alt="" loading="lazy"><div class="mosaic-overlay"><span class="mosaic-album">Dreaming</span><span class="mosaic-artist">Weval</span></div></a>
+<a class="mosaic-item" href="https://open.spotify.com/album/47mFpUDunR1rckC31EBT0g?si=360c47669e2845de" target="_blank" rel="noopener"><img src="https://i.scdn.co/image/ab67616d0000b273686ac5154c3f7b0180234055" alt="" loading="lazy"><div class="mosaic-overlay"><span class="mosaic-album">Half Age EP</span><span class="mosaic-artist">Weval</span></div></a>
+<a class="mosaic-item" href="https://open.spotify.com/album/51zkn8CSA5Tx2wKaGpl9ci?si=15f91552419745d1" target="_blank" rel="noopener"><img src="https://i.scdn.co/image/ab67616d0000b27386758d682d4fc964d574dbf5" alt="" loading="lazy"><div class="mosaic-overlay"><span class="mosaic-album">Weval</span><span class="mosaic-artist">Weval</span></div></a>
+<a class="mosaic-item" href="https://open.spotify.com/album/14miHHQBXPPlt61Ax0SK2W?si=c12cbeca00e04209" target="_blank" rel="noopener"><img src="https://i.scdn.co/image/ab67616d0000b2739de2f98369ae09423aafbd06" alt="" loading="lazy"><div class="mosaic-overlay"><span class="mosaic-album">Yatta!</span><span class="mosaic-artist">Yin Yin</span></div></a>
+      </div>
+    </div>
+
+    <div id="panel-visualizations" class="tab-panel">
+      <div class="charts-grid">
+        <div class="chart-box">
+          <p class="chart-label">Release years</p>
+          <canvas id="chart-year"></canvas>
+        </div>
+        <div class="chart-box">
+          <p class="chart-label">Top genres</p>
+          <canvas id="chart-genres"></canvas>
+        </div>
+      </div>
+    </div>
+
   </section>
 
   <script>
     const FORMSPREE = 'https://formspree.io/f/xdalvzjr';
+    const ALBUMS = [{"year": 2018, "duration_min": 41.8, "genres": "synthwave, chillwave, vaporwave"}, {"year": 2022, "duration_min": 33.7, "genres": "synthwave, chillwave, vaporwave"}, {"year": 2017, "duration_min": 46.2, "genres": "stoner rock, stoner metal, neo-psychedelic, psychedelic rock, space rock, sludge metal, blues rock"}, {"year": 2012, "duration_min": 44.0, "genres": "indie, indie rock"}, {"year": 2022, "duration_min": 49.5, "genres": "indie, indie rock"}, {"year": 2025, "duration_min": 37.4, "genres": "unknown"}, {"year": 1977, "duration_min": 106.6, "genres": "soft rock"}, {"year": 2025, "duration_min": 37.0, "genres": "unknown"}, {"year": 2024, "duration_min": 48.4, "genres": "post-punk"}, {"year": 2024, "duration_min": 50.3, "genres": "blues rock"}, {"year": 2021, "duration_min": 31.6, "genres": "unknown"}, {"year": 2013, "duration_min": 42.2, "genres": "nederpop"}, {"year": 2016, "duration_min": 42.3, "genres": "nederpop"}, {"year": 2025, "duration_min": 41.7, "genres": "nederpop"}, {"year": 2011, "duration_min": 51.6, "genres": "stoner metal, stoner rock, sludge metal, doom metal, space rock, psychedelic rock, drone metal, neo-psychedelic"}, {"year": 2019, "duration_min": 33.9, "genres": "stoner metal, stoner rock, sludge metal, doom metal, space rock, psychedelic rock, drone metal, neo-psychedelic"}, {"year": 2024, "duration_min": 47.4, "genres": "stutter house, house, edm"}, {"year": 2025, "duration_min": 33.3, "genres": "neo-psychedelic, psychedelic rock"}, {"year": 2020, "duration_min": 35.5, "genres": "neo-psychedelic, psychedelic rock"}, {"year": 2022, "duration_min": 48.2, "genres": "unknown"}, {"year": 2013, "duration_min": 50.6, "genres": "unknown"}, {"year": 2025, "duration_min": 45.3, "genres": "stoner rock, stoner metal, sludge metal, doom metal, space rock, psychedelic rock"}, {"year": 2021, "duration_min": 40.4, "genres": "stoner rock, space rock, stoner metal, sludge metal, psychedelic rock, doom metal"}, {"year": 2025, "duration_min": 33.6, "genres": "stoner rock, stoner metal, space rock, norsk rock, doom metal, sludge metal"}, {"year": 2018, "duration_min": 50.7, "genres": "experimental jazz"}, {"year": 2023, "duration_min": 37.2, "genres": "stoner rock, stoner metal"}, {"year": 2008, "duration_min": 34.9, "genres": "retro soul"}, {"year": 1972, "duration_min": 37.5, "genres": "classic rock, folk rock, singer-songwriter, roots rock"}, {"year": 2020, "duration_min": 38.5, "genres": "neo-psychedelic, egg punk, psychedelic rock, garage rock, noise rock, krautrock"}, {"year": 2025, "duration_min": 45.9, "genres": "indie soul"}, {"year": 2012, "duration_min": 50.9, "genres": "space rock, stoner rock, krautrock, psychedelic rock, noise rock, stoner metal, drone metal, neo-psychedelic, acid rock"}, {"year": 2020, "duration_min": 37.8, "genres": "stoner rock, stoner metal, norsk rock, sludge metal"}, {"year": 2024, "duration_min": 38.3, "genres": "stoner rock, stoner metal, norsk rock, sludge metal"}, {"year": 1967, "duration_min": 27.6, "genres": "baroque pop"}, {"year": 2025, "duration_min": 62.8, "genres": "southern gothic, blues rock, modern blues, country blues"}, {"year": 2016, "duration_min": 30.5, "genres": "southern gothic, blues rock, modern blues, country blues"}, {"year": 2022, "duration_min": 40.5, "genres": "post-punk, egg punk"}, {"year": 2024, "duration_min": 43.0, "genres": "unknown"}, {"year": 2023, "duration_min": 11.7, "genres": "unknown"}, {"year": 2013, "duration_min": 29.1, "genres": "unknown"}, {"year": 2016, "duration_min": 51.2, "genres": "unknown"}, {"year": 2026, "duration_min": 41.0, "genres": "neo-psychedelic"}];
 
     document.getElementById('suggest-form').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -383,6 +545,22 @@
         }
       } catch (_) {}
     });
+
+    document.getElementById('albums-table').querySelector('tbody').addEventListener('click', (e) => {
+      const row = e.target.closest('tr');
+      if (row && row.dataset.url) window.open(row.dataset.url, '_blank', 'noopener');
+    });
+
+    function showTab(name) {
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('panel-' + name).classList.add('active');
+      document.querySelector('[data-tab="' + name + '"]').classList.add('active');
+      if (name === 'visualizations' && !chartsRendered) {
+        chartsRendered = true;
+        renderCharts();
+      }
+    }
 
     let sortCol = -1;
     let sortAsc = true;
@@ -417,6 +595,99 @@
       });
 
       rows.forEach(r => tbody.appendChild(r));
+    }
+
+    let chartsRendered = false;
+
+    function renderCharts() {
+      const years = ALBUMS.map(a => a.year).filter(y => y !== null);
+      const minY = Math.min(...years) - 3;
+      const maxY = Math.max(...years) + 3;
+      const bw = 3;
+      const xPoints = [];
+      for (let x = minY; x <= maxY; x++) xPoints.push(x);
+
+      const kdeVals = xPoints.map(x => {
+        const sum = years.reduce((s, y) => {
+          const u = (x - y) / bw;
+          return s + Math.exp(-0.5 * u * u);
+        }, 0);
+        return sum / (years.length * bw * Math.sqrt(2 * Math.PI));
+      });
+
+      new Chart(document.getElementById('chart-year'), {
+        type: 'line',
+        data: {
+          labels: xPoints,
+          datasets: [{
+            data: kdeVals,
+            borderColor: '#a78bfa',
+            borderWidth: 2,
+            pointRadius: 0,
+            fill: true,
+            backgroundColor: 'rgba(124, 58, 237, 0.12)',
+            tension: 0.4,
+          }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          aspectRatio: 2,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: {
+              grid: { color: 'rgba(255,255,255,0.04)' },
+              border: { color: 'rgba(255,255,255,0.08)' },
+              ticks: {
+                color: '#55556a',
+                font: { size: 10 },
+                maxRotation: 0,
+                callback: (val, i) => xPoints[i] % 10 === 0 ? String(xPoints[i]) : '',
+              },
+            },
+            y: { display: false },
+          },
+        },
+      });
+
+      const counts = {};
+      ALBUMS.forEach(a => {
+        if (!a.genres || a.genres === 'unknown') return;
+        a.genres.split(',').forEach(g => {
+          g = g.trim();
+          if (g) counts[g] = (counts[g] || 0) + 1;
+        });
+      });
+      const top = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10);
+
+      new Chart(document.getElementById('chart-genres'), {
+        type: 'bar',
+        data: {
+          labels: top.map(([g]) => g),
+          datasets: [{
+            data: top.map(([, c]) => c),
+            backgroundColor: 'rgba(124, 58, 237, 0.5)',
+            borderColor: '#7c3aed',
+            borderWidth: 1,
+            borderRadius: 2,
+          }],
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: true,
+          aspectRatio: 1.2,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { display: false },
+            y: {
+              grid: { display: false },
+              border: { display: false },
+              ticks: { color: '#55556a', font: { size: 10 } },
+            },
+          },
+        },
+      });
     }
   </script>
 

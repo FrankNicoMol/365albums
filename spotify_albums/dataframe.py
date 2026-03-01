@@ -13,7 +13,7 @@ def build_dataframe(listened_path):
     rows = []
     for (artist, album_name), url in albums:
         print(f"Fetching: {artist} - {album_name}")
-        year, duration_min, genres = fetch_album_details(spotify, url)
+        year, duration_min, genres, cover_url = fetch_album_details(spotify, url)
         rows.append({
             'artist': artist,
             'album': album_name,
@@ -21,6 +21,7 @@ def build_dataframe(listened_path):
             'duration_min': duration_min,
             'genres': genres,
             'url': url,
+            'cover_url': cover_url,
         })
 
     return pd.DataFrame(rows)

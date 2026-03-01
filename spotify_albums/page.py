@@ -1,5 +1,10 @@
+import json
 from collections import defaultdict
 from pathlib import Path
+
+
+def _esc(s):
+    return str(s).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;')
 
 
 def _top_genres(df, n=5):
@@ -32,16 +37,48 @@ def _table_rows(df):
     rows = []
     for _, row in df.iterrows():
         rows.append(
-            f'<tr>'
-            f'<td><a href="{row["url"]}" target="_blank" rel="noopener">↗</a></td>'
+            f'<tr data-url="{row["url"]}">'
             f'<td>{row["artist"]}</td>'
             f'<td>{row["album"]}</td>'
             f'<td>{row["year"]}</td>'
-            f'<td>{round(row["duration_min"] / 60, 1)}</td>'
+            f'<td>{round(row["duration_min"])}</td>'
             f'<td>{row["genres"]}</td>'
             f'</tr>'
         )
     return '\n'.join(rows)
+
+
+def _mosaic_items(df):
+    items = []
+    for _, row in df.iterrows():
+        cover = row.get('cover_url', '')
+        img_tag = (f'<img src="{cover}" alt="" loading="lazy">'
+                   if cover else '<div class="mosaic-placeholder"></div>')
+        items.append(
+            f'<a class="mosaic-item" href="{row["url"]}" target="_blank" rel="noopener">'
+            f'{img_tag}'
+            f'<div class="mosaic-overlay">'
+            f'<span class="mosaic-album">{_esc(row["album"])}</span>'
+            f'<span class="mosaic-artist">{_esc(row["artist"])}</span>'
+            f'</div>'
+            f'</a>'
+        )
+    return '\n'.join(items)
+
+
+def _chart_data_json(df):
+    records = []
+    for _, row in df.iterrows():
+        try:
+            year = int(str(row['year'])[:4])
+        except (ValueError, TypeError):
+            year = None
+        records.append({
+            'year': year,
+            'duration_min': float(row['duration_min']),
+            'genres': str(row.get('genres', '')),
+        })
+    return json.dumps(records)
 
 
 def build_page(df, img_path: Path, output_path: Path, formspree_url: str = '', footer_name: str = '', footer_url: str = ''):
@@ -52,6 +89,8 @@ def build_page(df, img_path: Path, output_path: Path, formspree_url: str = '', f
     genres = _top_genres(df)
     img_rel = img_path.relative_to(output_path.parent)
     rows = _table_rows(df)
+    mosaic = _mosaic_items(df)
+    chart_data = _chart_data_json(df)
 
     html = f"""<!DOCTYPE html>
 <html lang="en">
@@ -59,6 +98,7 @@ def build_page(df, img_path: Path, output_path: Path, formspree_url: str = '', f
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>365 Albums 2026</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
   <style>
     *, *::before, *::after {{ margin: 0; padding: 0; box-sizing: border-box; }}
 
@@ -167,13 +207,42 @@ def build_page(df, img_path: Path, output_path: Path, formspree_url: str = '', f
       width: {progress_pct}%;
     }}
 
-    /* ── Table section ── */
-    .table-section {{
+    /* ── Content section ── */
+    .content-section {{
       padding: 5rem 2rem;
       max-width: 900px;
       margin: 0 auto;
     }}
 
+    /* ── Tab nav ── */
+    .tab-nav {{
+      display: flex;
+      margin-bottom: 2.5rem;
+      border-bottom: 1px solid #1a1a2e;
+    }}
+
+    .tab-btn {{
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      padding: 0.5rem 1.4rem 0.5rem 0;
+      font-family: inherit;
+      font-size: 0.62rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #55556a;
+      cursor: pointer;
+      margin-bottom: -1px;
+      transition: color 0.15s, border-color 0.15s;
+    }}
+
+    .tab-btn:hover {{ color: #a78bfa; }}
+    .tab-btn.active {{ color: #a78bfa; border-bottom-color: #7c3aed; }}
+
+    .tab-panel {{ display: none; }}
+    .tab-panel.active {{ display: block; }}
+
+    /* ── Table ── */
     .section-label {{
       font-size: 0.65rem;
       letter-spacing: 0.25em;
@@ -209,17 +278,14 @@ def build_page(df, img_path: Path, output_path: Path, formspree_url: str = '', f
 
     thead th:hover {{ color: #a78bfa; }}
 
-    thead th.sortable::after {{
-      content: ' ↕';
-      opacity: 0.3;
-    }}
-
+    thead th.sortable::after {{ content: ' ↕'; opacity: 0.3; }}
     thead th.sortable.asc::after  {{ content: ' ↑'; opacity: 1; color: #a78bfa; }}
     thead th.sortable.desc::after {{ content: ' ↓'; opacity: 1; color: #a78bfa; }}
 
     tbody tr {{
       border-bottom: 1px solid #0f0f1a;
       transition: background 0.1s;
+      cursor: pointer;
     }}
 
     tbody tr:hover {{ background: #0f0f1e; }}
@@ -230,19 +296,91 @@ def build_page(df, img_path: Path, output_path: Path, formspree_url: str = '', f
       vertical-align: top;
     }}
 
-    tbody td:nth-child(4),
-    tbody td:nth-child(5) {{ color: #55556a; }}
+    tbody td:nth-child(3),
+    tbody td:nth-child(4) {{ color: #55556a; }}
 
-    tbody td:nth-child(1) {{ text-align: center; }}
-
-    tbody td a {{
-      color: #55556a;
-      text-decoration: none;
-      font-size: 0.9rem;
-      transition: color 0.15s;
+    /* ── Mosaic ── */
+    .mosaic-grid {{
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 4px;
     }}
 
-    tbody td a:hover {{ color: #a78bfa; }}
+    .mosaic-item {{
+      position: relative;
+      aspect-ratio: 1;
+      overflow: hidden;
+      display: block;
+      text-decoration: none;
+    }}
+
+    .mosaic-item img {{
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.3s;
+    }}
+
+    .mosaic-placeholder {{
+      width: 100%;
+      height: 100%;
+      background: #0f0f1a;
+    }}
+
+    .mosaic-item:hover img {{ transform: scale(1.06); }}
+
+    .mosaic-overlay {{
+      position: absolute;
+      inset: 0;
+      background: rgba(8, 8, 15, 0.85);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 0.75rem;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }}
+
+    .mosaic-item:hover .mosaic-overlay {{ opacity: 1; }}
+
+    .mosaic-album {{
+      font-size: 0.8rem;
+      color: #f0f0ff;
+      font-weight: 400;
+      line-height: 1.3;
+    }}
+
+    .mosaic-artist {{
+      font-size: 0.7rem;
+      color: #a78bfa;
+      margin-top: 0.2rem;
+    }}
+
+    /* ── Charts ── */
+    .charts-grid {{
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }}
+
+    @media (max-width: 640px) {{
+      .charts-grid {{ grid-template-columns: 1fr; }}
+    }}
+
+    .chart-box {{
+      background: rgba(255,255,255,0.02);
+      border: 1px solid #0f0f1a;
+      padding: 1.5rem;
+    }}
+
+    .chart-label {{
+      font-size: 0.62rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #55556a;
+      margin-bottom: 1rem;
+    }}
 
     /* ── Footer ── */
     footer {{
@@ -261,13 +399,7 @@ def build_page(df, img_path: Path, output_path: Path, formspree_url: str = '', f
 
     footer a:hover {{ color: #a78bfa; }}
 
-    /* ── Suggest form (inside hero box) ── */
-    .hero-divider {{
-      border: none;
-      border-top: 1px solid rgba(255,255,255,0.08);
-      margin: 2rem 0;
-    }}
-
+    /* ── Suggest form ── */
     .suggest-form {{
       display: flex;
       flex-direction: column;
@@ -289,7 +421,6 @@ def build_page(df, img_path: Path, output_path: Path, formspree_url: str = '', f
     }}
 
     .suggest-form input:focus {{ border-color: #7c3aed; }}
-
     .suggest-form input::placeholder {{ color: #35354a; }}
 
     .suggest-form button {{
@@ -362,29 +493,57 @@ def build_page(df, img_path: Path, output_path: Path, formspree_url: str = '', f
     </div>
   </section>
 
-  <section class="table-section">
-    <p class="section-label">All albums</p>
-    <div class="table-scroll">
-    <table id="albums-table">
-      <thead>
-        <tr>
-          <th></th>
-          <th class="sortable" onclick="sortTable(1)">Artist</th>
-          <th class="sortable" onclick="sortTable(2)">Album</th>
-          <th class="sortable" onclick="sortTable(3)">Year</th>
-          <th class="sortable" onclick="sortTable(4)">Duration (hrs)</th>
-          <th class="sortable" onclick="sortTable(5)">Genres</th>
-        </tr>
-      </thead>
-      <tbody>
-        {rows}
-      </tbody>
-    </table>
+  <section class="content-section">
+
+    <nav class="tab-nav">
+      <button class="tab-btn active" data-tab="list" onclick="showTab('list')">List</button>
+      <button class="tab-btn" data-tab="mosaic" onclick="showTab('mosaic')">Mosaic</button>
+      <button class="tab-btn" data-tab="visualizations" onclick="showTab('visualizations')">Visualizations</button>
+    </nav>
+
+    <div id="panel-list" class="tab-panel active">
+      <div class="table-scroll">
+      <table id="albums-table">
+        <thead>
+          <tr>
+            <th class="sortable" onclick="sortTable(0)">Artist</th>
+            <th class="sortable" onclick="sortTable(1)">Album</th>
+            <th class="sortable" onclick="sortTable(2)">Year</th>
+            <th class="sortable" onclick="sortTable(3)">Duration (min)</th>
+            <th class="sortable" onclick="sortTable(4)">Genres</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows}
+        </tbody>
+      </table>
+      </div>
     </div>
+
+    <div id="panel-mosaic" class="tab-panel">
+      <div class="mosaic-grid">
+        {mosaic}
+      </div>
+    </div>
+
+    <div id="panel-visualizations" class="tab-panel">
+      <div class="charts-grid">
+        <div class="chart-box">
+          <p class="chart-label">Release years</p>
+          <canvas id="chart-year"></canvas>
+        </div>
+        <div class="chart-box">
+          <p class="chart-label">Top genres</p>
+          <canvas id="chart-genres"></canvas>
+        </div>
+      </div>
+    </div>
+
   </section>
 
   <script>
     const FORMSPREE = '{formspree_url}';
+    const ALBUMS = {chart_data};
 
     document.getElementById('suggest-form').addEventListener('submit', async (e) => {{
       e.preventDefault();
@@ -398,6 +557,22 @@ def build_page(df, img_path: Path, output_path: Path, formspree_url: str = '', f
         }}
       }} catch (_) {{}}
     }});
+
+    document.getElementById('albums-table').querySelector('tbody').addEventListener('click', (e) => {{
+      const row = e.target.closest('tr');
+      if (row && row.dataset.url) window.open(row.dataset.url, '_blank', 'noopener');
+    }});
+
+    function showTab(name) {{
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('panel-' + name).classList.add('active');
+      document.querySelector('[data-tab="' + name + '"]').classList.add('active');
+      if (name === 'visualizations' && !chartsRendered) {{
+        chartsRendered = true;
+        renderCharts();
+      }}
+    }}
 
     let sortCol = -1;
     let sortAsc = true;
@@ -432,6 +607,99 @@ def build_page(df, img_path: Path, output_path: Path, formspree_url: str = '', f
       }});
 
       rows.forEach(r => tbody.appendChild(r));
+    }}
+
+    let chartsRendered = false;
+
+    function renderCharts() {{
+      const years = ALBUMS.map(a => a.year).filter(y => y !== null);
+      const minY = Math.min(...years) - 3;
+      const maxY = Math.max(...years) + 3;
+      const bw = 3;
+      const xPoints = [];
+      for (let x = minY; x <= maxY; x++) xPoints.push(x);
+
+      const kdeVals = xPoints.map(x => {{
+        const sum = years.reduce((s, y) => {{
+          const u = (x - y) / bw;
+          return s + Math.exp(-0.5 * u * u);
+        }}, 0);
+        return sum / (years.length * bw * Math.sqrt(2 * Math.PI));
+      }});
+
+      new Chart(document.getElementById('chart-year'), {{
+        type: 'line',
+        data: {{
+          labels: xPoints,
+          datasets: [{{
+            data: kdeVals,
+            borderColor: '#a78bfa',
+            borderWidth: 2,
+            pointRadius: 0,
+            fill: true,
+            backgroundColor: 'rgba(124, 58, 237, 0.12)',
+            tension: 0.4,
+          }}],
+        }},
+        options: {{
+          responsive: true,
+          maintainAspectRatio: true,
+          aspectRatio: 2,
+          plugins: {{ legend: {{ display: false }} }},
+          scales: {{
+            x: {{
+              grid: {{ color: 'rgba(255,255,255,0.04)' }},
+              border: {{ color: 'rgba(255,255,255,0.08)' }},
+              ticks: {{
+                color: '#55556a',
+                font: {{ size: 10 }},
+                maxRotation: 0,
+                callback: (val, i) => xPoints[i] % 10 === 0 ? String(xPoints[i]) : '',
+              }},
+            }},
+            y: {{ display: false }},
+          }},
+        }},
+      }});
+
+      const counts = {{}};
+      ALBUMS.forEach(a => {{
+        if (!a.genres || a.genres === 'unknown') return;
+        a.genres.split(',').forEach(g => {{
+          g = g.trim();
+          if (g) counts[g] = (counts[g] || 0) + 1;
+        }});
+      }});
+      const top = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10);
+
+      new Chart(document.getElementById('chart-genres'), {{
+        type: 'bar',
+        data: {{
+          labels: top.map(([g]) => g),
+          datasets: [{{
+            data: top.map(([, c]) => c),
+            backgroundColor: 'rgba(124, 58, 237, 0.5)',
+            borderColor: '#7c3aed',
+            borderWidth: 1,
+            borderRadius: 2,
+          }}],
+        }},
+        options: {{
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: true,
+          aspectRatio: 1.2,
+          plugins: {{ legend: {{ display: false }} }},
+          scales: {{
+            x: {{ display: false }},
+            y: {{
+              grid: {{ display: false }},
+              border: {{ display: false }},
+              ticks: {{ color: '#55556a', font: {{ size: 10 }} }},
+            }},
+          }},
+        }},
+      }});
     }}
   </script>
 

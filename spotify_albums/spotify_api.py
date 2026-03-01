@@ -31,5 +31,6 @@ def fetch_album_details(spotify, url):
 
     artist = spotify.artist(album['artists'][0]['id'])
     genres = ', '.join(artist['genres']) if artist['genres'] else 'unknown'
+    cover_url = album['images'][0]['url'] if album.get('images') else ''
 
-    return year, duration_min, genres
+    return year, duration_min, genres, cover_url
