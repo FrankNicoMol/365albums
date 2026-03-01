@@ -85,7 +85,7 @@ def build_page(df, img_path: Path, output_path: Path, formspree_url: str = '', f
       width: 100%;
       padding: 3rem 2.5rem;
       text-align: left;
-      background: rgba(8, 8, 15, 0.7);
+      background: rgba(8, 8, 15, 0.8);
       border-radius: 16px;
       backdrop-filter: blur(2px);
     }}
