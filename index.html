@@ -127,8 +127,14 @@
       margin-bottom: 1.5rem;
     }
 
+    .table-scroll {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
     table {
       width: 100%;
+      min-width: 600px;
       border-collapse: collapse;
       font-size: 0.85rem;
     }
@@ -182,6 +188,23 @@
     }
 
     tbody td a:hover { color: #a78bfa; }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 2rem;
+      font-size: 0.75rem;
+      color: #35354a;
+      border-top: 1px solid #0f0f1a;
+    }
+
+    footer a {
+      color: #55556a;
+      text-decoration: underline;
+      transition: color 0.15s;
+    }
+
+    footer a:hover { color: #a78bfa; }
 
     /* ── Suggest form (inside hero box) ── */
     .hero-divider {
@@ -262,7 +285,7 @@
       </div>
 
       <div class="tags">
-        <span class="tag">Stoner Rock</span><span class="tag">Stoner Metal</span><span class="tag">Neo-Psychedelic</span><span class="tag">Psychedelic Rock</span><span class="tag">Sludge Metal</span>
+        <span class="tag">Stoner Rock</span><span class="tag">Neo-Psychedelic</span><span class="tag">Blues Rock</span><span class="tag">Nederpop</span><span class="tag">Synthwave</span>
       </div>
 
       <div class="progress-row">
@@ -288,6 +311,7 @@
 
   <section class="table-section">
     <p class="section-label">All albums</p>
+    <div class="table-scroll">
     <table id="albums-table">
       <thead>
         <tr>
@@ -341,6 +365,7 @@
 <tr><td>Yin Yin</td><td>Yatta!</td><td>2026</td><td>41.0</td><td>neo-psychedelic</td><td><a href="https://open.spotify.com/album/14miHHQBXPPlt61Ax0SK2W?si=c12cbeca00e04209" target="_blank" rel="noopener">↗</a></td></tr>
       </tbody>
     </table>
+    </div>
   </section>
 
   <script>
@@ -394,6 +419,10 @@
       rows.forEach(r => tbody.appendChild(r));
     }
   </script>
+
+  <footer>
+    <p>© 2026 <a href="https://github.com/FrankNicoMol" target="_blank" rel="noopener">Frank Nico Mol</a></p>
+  </footer>
 
 </body>
 </html>

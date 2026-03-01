@@ -1,15 +1,31 @@
-from collections import Counter
+from collections import defaultdict
 from pathlib import Path
 
 
 def _top_genres(df, n=5):
-    counts = Counter()
-    for g in df['genres'].dropna():
+    """Greedy set cover: pick genres that each add the most new album coverage."""
+    genre_albums = defaultdict(set)
+    for i, g in enumerate(df['genres'].dropna()):
         for tag in g.split(','):
             tag = tag.strip()
             if tag and tag != 'unknown':
-                counts[tag] += 1
-    return [genre.title() for genre, _ in counts.most_common(n)]
+                genre_albums[tag].add(i)
+
+    covered = set()
+    selected = []
+    remaining = dict(genre_albums)
+
+    for _ in range(n):
+        if not remaining:
+            break
+        best = max(remaining, key=lambda g: len(remaining[g] - covered))
+        if not (remaining[best] - covered):
+            break
+        selected.append(best.title())
+        covered |= remaining[best]
+        del remaining[best]
+
+    return selected
 
 
 def _table_rows(df):
@@ -28,7 +44,7 @@ def _table_rows(df):
     return '\n'.join(rows)
 
 
-def build_page(df, img_path: Path, output_path: Path, formspree_url: str = ''):
+def build_page(df, img_path: Path, output_path: Path, formspree_url: str = '', footer_name: str = '', footer_url: str = ''):
     albums = len(df)
     total_min = int(df['duration_min'].sum())
     remaining = max(0, 365 - albums)
@@ -166,8 +182,14 @@ def build_page(df, img_path: Path, output_path: Path, formspree_url: str = ''):
       margin-bottom: 1.5rem;
     }}
 
+    .table-scroll {{
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }}
+
     table {{
       width: 100%;
+      min-width: 600px;
       border-collapse: collapse;
       font-size: 0.85rem;
     }}
@@ -221,6 +243,23 @@ def build_page(df, img_path: Path, output_path: Path, formspree_url: str = ''):
     }}
 
     tbody td a:hover {{ color: #a78bfa; }}
+
+    /* ── Footer ── */
+    footer {{
+      text-align: center;
+      padding: 2rem;
+      font-size: 0.75rem;
+      color: #35354a;
+      border-top: 1px solid #0f0f1a;
+    }}
+
+    footer a {{
+      color: #55556a;
+      text-decoration: underline;
+      transition: color 0.15s;
+    }}
+
+    footer a:hover {{ color: #a78bfa; }}
 
     /* ── Suggest form (inside hero box) ── */
     .hero-divider {{
@@ -327,6 +366,7 @@ def build_page(df, img_path: Path, output_path: Path, formspree_url: str = ''):
 
   <section class="table-section">
     <p class="section-label">All albums</p>
+    <div class="table-scroll">
     <table id="albums-table">
       <thead>
         <tr>
@@ -342,6 +382,7 @@ def build_page(df, img_path: Path, output_path: Path, formspree_url: str = ''):
         {rows}
       </tbody>
     </table>
+    </div>
   </section>
 
   <script>
@@ -395,6 +436,10 @@ def build_page(df, img_path: Path, output_path: Path, formspree_url: str = ''):
       rows.forEach(r => tbody.appendChild(r));
     }}
   </script>
+
+  <footer>
+    <p>© 2026 <a href="{footer_url}" target="_blank" rel="noopener">{footer_name}</a></p>
+  </footer>
 
 </body>
 </html>"""

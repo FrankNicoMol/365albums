@@ -35,4 +35,7 @@ if __name__ == '__main__':
     print(df.to_string(index=False))
 
     img = sorted(Path('img').glob('*.png'))[-1]
-    build_page(df, img, Path('index.html'), formspree_url=paths.get('formspree_url', ''))
+    build_page(df, img, Path('index.html'),
+               formspree_url=paths.get('formspree_url', ''),
+               footer_name=paths.get('footer_name', ''),
+               footer_url=paths.get('footer_url', ''))
