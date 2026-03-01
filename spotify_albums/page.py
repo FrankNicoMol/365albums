@@ -62,19 +62,15 @@ def build_page(df, img_path: Path, output_path: Path):
       justify-content: center;
     }}
 
-    .hero::before {{
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(to bottom, rgba(8,8,15,0.35) 0%, rgba(8,8,15,0.65) 100%);
-    }}
-
     .hero-content {{
       position: relative;
-      max-width: 560px;
-      width: 100%;
-      padding: 3rem 2rem;
+      max-width: 520px;
+      width: calc(100% - 8rem);
+      padding: 3rem 2.5rem;
       text-align: left;
+      background: rgba(8, 8, 15, 0.4);
+      border-radius: 16px;
+      backdrop-filter: blur(2px);
     }}
 
     .eyebrow {{
